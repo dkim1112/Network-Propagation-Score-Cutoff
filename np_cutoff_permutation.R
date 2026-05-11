@@ -10,8 +10,9 @@
 # 2. seed와 동일한 수 + degree-bin matched random seeds로 N_PERM회 permutation
 #    → 매번 page_rank 재실행 → 유전자별 null distribution 생성
 # 3. empirical p-value: p_i = (#{null >= obs} + 1) / (N_PERM + 1)
-# 4. Benjamini-Hochberg FDR 보정
-# 5. seed 수 <= LOW_SEED_THRESHOLD 질환은 low_confidence flag
+# 4. seed 수 <= LOW_SEED_THRESHOLD 질환은 low_confidence flag
+# ※ BH FDR 보정 미적용: N_PERM=1000 기준 최솟값 p=0.001 x 18408 = 18.4로
+#    수학적으로 통과 불가. empirical p-value 자체를 cutoff로 사용. -> 우선은 qval없음.
 #
 ################################################################################
 
@@ -26,12 +27,25 @@ library(igraph)
 DATA_DIR           <- "result_network_propagation"
 NETWORK_FILE       <- "tables_expansion/Combined_STRINGv11_OTAR281119_FILTER.rds"
 OUTPUT_FILE        <- "result_np_cutoff/np_cutoff_results.csv"
-N_PERM             <- 10000
-FDR_ALPHA          <- 0.05
+N_PERM             <- 1000
 N_BINS             <- 10
 LOW_SEED_THRESHOLD <- 2
 RANDOM_SEED        <- 42
-TEST_SPECIFIC   <- c("nodes.finngen_R12_AUTOIMMUNE.rds")
+FDR_ALPHA          <- 0.05
+# seed 수를 다양하게 가져간 10개 질환 (seed 1~25)
+# 전체 실행 시 TEST_SPECIFIC <- NULL 로 변경
+TEST_SPECIFIC <- c(
+  "nodes.finngen_R12_ALCOPANCCHRON.rds",          # seed 1
+  "nodes.finngen_R12_ABDOM_HERNIA.rds",            # seed 2
+  "nodes.finngen_R12_L12_ATOPIC.rds",              # seed 3
+  "nodes.finngen_R12_T1D.rds",                     # seed 5
+  "nodes.finngen_R12_AUTOIMMUNE_NONTHYROID.rds",   # seed 7
+  "nodes.finngen_R12_T2D_WIDE.rds",                # seed 9
+  "nodes.finngen_R12_I9_CHD.rds",                  # seed 11
+  "nodes.finngen_R12_AUTOIMMUNE.rds",              # seed 13
+  "nodes.finngen_R12_K11_IBD_STRICT.rds",          # seed 16
+  "nodes.finngen_R12_I9_HYPTENS.rds"               # seed 25
+)
 # =============================================================================
 
 set.seed(RANDOM_SEED)
@@ -84,21 +98,10 @@ process_disease <- function(filepath) {
 
   trait     <- unique(node$Trait)[1]
   seed_df   <- node[!is.na(node$padj) & node$padj != 0, ]
-  target_df <- node[!is.na(node$padj) & node$padj == 0, ]
+  target_df <- node[!is.na(node$padj) & node$padj == 0, ] # seed 제외, padj==0인 유전자만 분석 대상
   n_seeds   <- nrow(seed_df)
 
   if (n_seeds == 0) return(NULL)
-
-  # == 75th percentile 필터 ====================================================
-  # code.R의 astro()와 동일한 로직:
-  # page.rank 상위 25% 유전자만 테스트 대상으로 제한.
-  # 이유: 전체 18,408개에 BH 보정하면 N_PERM=1000으로는 수학적으로
-  #       유의한 결과가 불가능 (최솟값 p=0.001 x 18408 = 18.4)
-  #       상위 25% (~4,600개)로 줄이면 보정이 현실적인 수준이 됨.
-  pr_cutoff <- quantile(target_df$page.rank, 0.75)
-  target_df <- target_df[target_df$page.rank > pr_cutoff, ]
- 
-  if (nrow(target_df) == 0) return(NULL)
 
   obs_scores   <- target_df$page.rank
   target_nodes <- target_df$ENSG
@@ -146,18 +149,13 @@ process_disease <- function(filepath) {
   count_ge <- rowSums(null_matrix >= obs_scores, na.rm = TRUE)
   emp_pval <- (count_ge + 1) / (N_PERM + 1)
 
-  # == BH FDR ==================================================================
-  qval <- p.adjust(emp_pval, method = "BH")
-
   target_df$emp_pval       <- emp_pval
-  target_df$qval           <- qval
-  target_df$significant    <- qval < FDR_ALPHA
+  target_df$significant    <- emp_pval < FDR_ALPHA
   target_df$n_seeds        <- n_seeds
   target_df$low_confidence <- (n_seeds <= LOW_SEED_THRESHOLD)
 
   target_df[, c("ENSG", "gene", "Trait", "page.rank", "degree",
-                 "emp_pval", "qval", "significant",
-                 "n_seeds", "low_confidence")]
+                 "emp_pval", "significant", "n_seeds", "low_confidence")]
 }
 
 # == 4. 전체 질환 처리 =========================================================
@@ -206,8 +204,8 @@ write.csv(final, OUTPUT_FILE, row.names = FALSE)
 cat("\n", strrep("=", 55), "\n", sep = "")
 cat(sprintf("완료. 총 %d개 질환 처리\n",    length(unique(final$Trait))))
 cat(sprintf("전체 유전자-질환 쌍: %s\n",     format(nrow(final), big.mark = ",")))
-cat(sprintf("유의한 유전자-질환 쌍 (q<%.2f): %s\n",
-            FDR_ALPHA, format(sum(final$significant), big.mark = ",")))
+cat(sprintf("emp_pval < 0.05 유전자-질환 쌍: %s\n",
+            format(sum(final$emp_pval < 0.05), big.mark = ",")))
 cat(sprintf("Low confidence 질환 (seed<=%d개): %d개 질환\n",
             LOW_SEED_THRESHOLD,
             length(unique(final$Trait[final$low_confidence]))))
