@@ -58,8 +58,6 @@ def top_frac_indices(scores, frac):
 
 
 def main():
-    print(f"Reading data from {INPUT_FILE} ...")
-
     traits = {}  # trait -> dict(page_rank=[], neg_log10=[], n_seeds=int)
     with open(INPUT_FILE, "r", newline="") as fh:
         reader = csv.DictReader(fh)
@@ -70,8 +68,6 @@ def main():
             t["n_seeds"] = int(row["n_seeds"])
 
     n_traits = len(traits)
-    n_rows = sum(len(t["page_rank"]) for t in traits.values())
-    print(f"Data dimensions: {n_rows} rows, {n_traits} traits\n")
 
     ncols = min(NCOLS, n_traits)
     nrows = math.ceil(n_traits / ncols)
@@ -83,8 +79,6 @@ def main():
     )
 
     r_all_list, r_top_list = [], []
-    print(f"{'Trait':<40} {'seeds':>5}  " + "  ".join(f"r@top{int(c*100)}%" if c < 1 else "r@all"
-                                                     for c in CUTOFFS))
     for idx, (trait, t) in enumerate(sorted(traits.items())):
         ax = axes[idx // ncols][idx % ncols]
         x = t["page_rank"]
@@ -125,15 +119,10 @@ def main():
         ax.tick_params(labelsize=7)
         ax.grid(True, alpha=0.3)
 
-        # console: r restricted to the top fraction at several cutoffs
-        rs = []
-        for c in CUTOFFS:
-            if c >= 1.0:
-                rs.append(pearson_correlation(x, y))
-            else:
-                sel = top_frac_indices(x, c)
-                rs.append(pearson_correlation([x[i] for i in sel], [y[i] for i in sel]))
-        print(f"{trait:<40} {t['n_seeds']:>5}  " + "  ".join(f"{v:7.3f}" for v in rs))
+        # Add P-value significance lines
+        ax.axhline(y=-math.log10(0.05), color='orange', linestyle='--', alpha=0.7, linewidth=1, label='P=0.05')
+        ax.axhline(y=-math.log10(0.01), color='red', linestyle='--', alpha=0.7, linewidth=1, label='P=0.01')
+
 
     for idx in range(n_traits, nrows * ncols):
         axes[idx // ncols][idx % ncols].axis("off")
@@ -143,13 +132,6 @@ def main():
     fig.savefig(OUTPUT_FILE, dpi=200, bbox_inches="tight")
     plt.close(fig)
 
-    def _mean(v):
-        v = [x for x in v if not math.isnan(x)]
-        return sum(v) / len(v) if v else float("nan")
-
-    print(f"\nMean r(all) = {_mean(r_all_list):.3f}   "
-          f"Mean r(top {TOP_FRAC*100:g}%) = {_mean(r_top_list):.3f}")
-    print(f"Saved: {OUTPUT_FILE}")
 
 
 if __name__ == "__main__":

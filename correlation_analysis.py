@@ -34,9 +34,6 @@ def pearson_correlation(x, y):
 
 
 def main():
-    print(f"Reading data from {INPUT_FILE} ...")
-
-    # group rows by trait
     traits = {}
     with open(INPUT_FILE, "r", newline="") as fh:
         reader = csv.DictReader(fh)
@@ -45,37 +42,18 @@ def main():
             neg_log10_emp_pval = -math.log10(float(row["emp_pval"]))
             traits.setdefault(row["Trait"], []).append((page_rank, neg_log10_emp_pval))
 
-    n_rows = sum(len(v) for v in traits.values())
-    print(f"Data dimensions: {n_rows} rows")
-    print(f"Number of unique traits/diseases: {len(traits)}")
-
-    # correlation per trait
     results = []
-    print("\nCalculating corr(prop_score, -log10_emp_pval) for each disease...")
     for trait, pairs in sorted(traits.items()):
         page_ranks = [p for p, _ in pairs]
         neg_log10_emp_pvals = [v for _, v in pairs]
         corr = pearson_correlation(page_ranks, neg_log10_emp_pvals)
         results.append({"Trait": trait, "corr_prop_emp_pval": corr, "n_genes": len(pairs)})
-        print(f"  {trait:<40} corr={corr:7.4f}  ({len(pairs)} genes)")
 
-    # save
     with open(OUTPUT_FILE, "w", newline="") as fh:
         writer = csv.DictWriter(fh, fieldnames=["Trait", "corr_prop_emp_pval", "n_genes"])
         writer.writeheader()
         for r in results:
             writer.writerow(r)
-    print(f"\nResults saved to {OUTPUT_FILE}")
-
-    # summary
-    corrs = [r["corr_prop_emp_pval"] for r in results if not math.isnan(r["corr_prop_emp_pval"])]
-    if corrs:
-        print("\n=== SUMMARY: corr(prop_score, -log10_emp_pval) ===")
-        print(f"  Mean:   {statistics.mean(corrs):.4f}")
-        print(f"  Median: {statistics.median(corrs):.4f}")
-        print(f"  Range:  {min(corrs):.4f} to {max(corrs):.4f}")
-
-    print("\nAnalysis complete.")
 
 
 if __name__ == "__main__":

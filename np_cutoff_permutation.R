@@ -50,14 +50,8 @@ TEST_SPECIFIC <- c(
 
 set.seed(RANDOM_SEED)
 
-cat("=== NP Score Cutoff: Degree-preserving Permutation ===\n")
-cat(sprintf("N_PERM=%d | FDR=%.2f | N_BINS=%d | LOW_SEED_THRESHOLD=%d\n\n",
-            N_PERM, FDR_ALPHA, N_BINS, LOW_SEED_THRESHOLD))
-
 dir.create(dirname(OUTPUT_FILE), showWarnings = FALSE, recursive = TRUE)
 
-# == 1. 네트워크 로드 (한 번만) ================================================
-cat("Loading PPI network...\n")
 string <- as.data.frame(readRDS(NETWORK_FILE), stringsAsFactors = FALSE)
 string$combined_score <- as.numeric(string$combined_score)
 
@@ -71,7 +65,6 @@ net_full <- igraph::simplify(net_full,
                               remove.multiple = TRUE,
                               edge.attr.comb  = c(weight = "max", "ignore"))
 all_nodes <- V(net_full)$name
-cat(sprintf("Network: %d nodes, %d edges\n\n", length(all_nodes), ecount(net_full)))
 
 # == 2. Degree bin 사전 계산 ===================================================
 net_deg_vec <- igraph::degree(net_full)
@@ -159,36 +152,23 @@ process_disease <- function(filepath) {
 }
 
 # == 4. 전체 질환 처리 =========================================================
-# 테스트 모드에서는 일부 질환만 처리하도록 제한 (or specific files)
 files <- sort(list.files(DATA_DIR, pattern = "\\.rds$", full.names = TRUE))
 if (!is.null(TEST_SPECIFIC)) files <- files[basename(files) %in% TEST_SPECIFIC]
 n_files <- length(files)
-cat(sprintf("Processing %d disease files...\n\n", n_files))
 
 all_results <- vector("list", n_files)
 skipped     <- character()
 
 for (i in seq_along(files)) {
   fname <- basename(files[i])
-  t0    <- proc.time()["elapsed"]
-  cat(sprintf("[%d/%d] %s ... ", i, n_files, fname))
-
   tryCatch({
     res <- process_disease(files[i])
     if (!is.null(res)) {
       all_results[[i]] <- res
-      elapsed <- proc.time()["elapsed"] - t0
-      cat(sprintf("done (%.1fs) | seeds=%d%s | sig=%d\n",
-                  elapsed,
-                  res$n_seeds[1],
-                  ifelse(res$low_confidence[1], " [LOW_CONF]", ""),
-                  sum(res$significant)))
     } else {
-      cat("skipped (no seeds)\n")
       skipped <- c(skipped, fname)
     }
   }, error = function(e) {
-    cat(sprintf("ERROR: %s\n", conditionMessage(e)))
     skipped <<- c(skipped, fname)
   })
 }
