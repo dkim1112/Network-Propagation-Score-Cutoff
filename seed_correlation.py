@@ -17,8 +17,8 @@ import os
 
 # == 파라미터 ==================================================================
 INPUT_CSV  = "result_np_cutoff/np_cutoff_results.csv"   # 기본 입력 파일
-OUTPUT_CSV = "seed_correlation_summary.csv"
-OUTPUT_PNG = "seed_vs_correlation.png"
+OUTPUT_CSV = "result_np_cutoff/seed_correlation_summary.csv"
+OUTPUT_PNG = "result_np_cutoff/seed_vs_correlation.png"
 # =============================================================================
 
 # 커맨드라인 인수로 파일명 받을 수 있도록
