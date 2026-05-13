@@ -2,8 +2,7 @@
 """
 Seed correlation pattern comparison.
 Input: np_cutoff_results CSV file (emp_pval, page.rank, n_seeds columns)
-Output: - seed_correlation_summary.csv (trait-level summary)
-      - seed_vs_correlation.png (scatter plot)
+Output: - seed_vs_correlation.png (scatter plot)
 """
 
 import pandas as pd
@@ -17,7 +16,6 @@ import os
 
 # == 파라미터 ==================================================================
 INPUT_CSV  = "result_np_cutoff/np_cutoff_results.csv"   # 기본 입력 파일
-OUTPUT_CSV = "result_np_cutoff/seed_correlation_summary.csv"
 OUTPUT_PNG = "result_np_cutoff/seed_vs_correlation.png"
 # =============================================================================
 
@@ -59,8 +57,6 @@ for trait, sub in df.groupby('Trait'):
           f"r_all={r_all:.3f}")
 
 summary = pd.DataFrame(rows).sort_values('n_seeds')
-summary.to_csv(OUTPUT_CSV, index=False)
-print(f"\n결과 저장: {OUTPUT_CSV}")
 
 # == 요약 통계 =================================================================
 print("\n=== SUMMARY ===")
