@@ -7,8 +7,10 @@
 #
 # 절차:
 # 1. padj == 0인 유전자만 분석 대상 (seed 제외)
-# 2. seed와 동일한 수 + degree-bin matched random seeds로 N_PERM회 permutation
+# 2. seed와 동일한 수 + nearest-neighbor degree matched random seeds로 N_PERM회 permutation
 #    → 매번 page_rank 재실행 → 유전자별 null distribution 생성
+#    → degree matching 방식: 각 seed에 대해 degree 차이 0부터 점진적으로 허용
+#      (quantile bin 방식 → nearest-neighbor 방식으로 변경, 박사님 코드 기반)
 # 3. empirical p-value: p_i = (#{null >= obs} + 1) / (N_PERM + 1)
 # 4. seed 수 <= LOW_SEED_THRESHOLD 질환은 low_confidence flag
 # ※ BH FDR 보정 미적용: N_PERM=1000 기준 최솟값 p=0.001 x 18408 = 18.4로
@@ -28,29 +30,62 @@ DATA_DIR           <- "result_network_propagation"
 NETWORK_FILE       <- "tables_expansion/Combined_STRINGv11_OTAR281119_FILTER.rds"
 OUTPUT_FILE        <- "result_np_cutoff/np_cutoff_results.csv"
 N_PERM             <- 1000
-N_BINS             <- 10
 LOW_SEED_THRESHOLD <- 2
 RANDOM_SEED        <- 42
 FDR_ALPHA          <- 0.05
 # seed 수를 다양하게 가져간 10개 질환 (seed 1~25)
 # 전체 실행 시 TEST_SPECIFIC <- NULL 로 변경
 TEST_SPECIFIC <- c(
-  "nodes.finngen_R12_ALCOPANCCHRON.rds",          # seed 1
-  "nodes.finngen_R12_ABDOM_HERNIA.rds",            # seed 2
-  "nodes.finngen_R12_L12_ATOPIC.rds",              # seed 3
+  # "nodes.finngen_R12_ALCOPANCCHRON.rds",          # seed 1
+  # "nodes.finngen_R12_ABDOM_HERNIA.rds",            # seed 2
+  # "nodes.finngen_R12_L12_ATOPIC.rds",              # seed 3
   "nodes.finngen_R12_T1D.rds",                     # seed 5
   "nodes.finngen_R12_AUTOIMMUNE_NONTHYROID.rds",   # seed 7
-  "nodes.finngen_R12_T2D_WIDE.rds",                # seed 9
-  "nodes.finngen_R12_I9_CHD.rds",                  # seed 11
-  "nodes.finngen_R12_AUTOIMMUNE.rds",              # seed 13
-  "nodes.finngen_R12_K11_IBD_STRICT.rds",          # seed 16
-  "nodes.finngen_R12_I9_HYPTENS.rds"               # seed 25
+  "nodes.finngen_R12_T2D_WIDE.rds"                # seed 9
+  # "nodes.finngen_R12_I9_CHD.rds",                  # seed 11
+  # "nodes.finngen_R12_AUTOIMMUNE.rds",              # seed 13
+  # "nodes.finngen_R12_K11_IBD_STRICT.rds",          # seed 16
+  # "nodes.finngen_R12_I9_HYPTENS.rds"               # seed 25
 )
 # =============================================================================
 
 set.seed(RANDOM_SEED)
 
 dir.create(dirname(OUTPUT_FILE), showWarnings = FALSE, recursive = TRUE)
+
+# == Nearest-neighbor degree matching 함수 =====================================
+# 박사님 코드(AUC_calculation.R)의 make_nearest_match_sampler 기반
+# 각 seed에 대해 degree 차이 0부터 점진적으로 허용 범위를 늘려가며
+# 가장 가까운 degree의 random 유전자를 선택.
+# -> quantile bin 방식 대비 더 정밀하고 임의적 bin 경계 없음.
+make_nearest_match_sampler <- function(
+    deg_all,                         # named numeric: 모든 노드의 degree
+    tier1_genes,                     # seed 유전자 (degree matching 기준)
+    exclude_genes = tier1_genes,     # 샘플링 pool에서 제외할 유전자 (기본: seed 자신)
+    expand_seq = c(0, 1, 2, 3, 5, 8, 10, 12, 15,
+                   20, 30, 40, 50, 60, 70, 80, 90, 100, 200, Inf)
+) {
+  stopifnot(is.numeric(deg_all), !is.null(names(deg_all)))
+  tier1 <- intersect(tier1_genes, names(deg_all))
+  pool  <- setdiff(names(deg_all), exclude_genes)
+
+  sampler <- function() {
+    picked <- character(0)
+    for (g in tier1) {
+      d   <- deg_all[g]
+      got <- NA
+      for (tol in expand_seq) {
+        cand <- pool[abs(deg_all[pool] - d) <= tol]
+        cand <- setdiff(cand, picked)   # 중복 방지
+        if (length(cand) > 0) { got <- sample(cand, 1); break }
+      }
+      if (is.na(got)) stop(sprintf("근접 매칭 실패: %s (degree=%s)", g, d))
+      picked <- c(picked, got)
+    }
+    picked
+  }
+  sampler
+}
 
 string <- as.data.frame(readRDS(NETWORK_FILE), stringsAsFactors = FALSE)
 string$combined_score <- as.numeric(string$combined_score)
@@ -66,18 +101,8 @@ net_full <- igraph::simplify(net_full,
                               edge.attr.comb  = c(weight = "max", "ignore"))
 all_nodes <- V(net_full)$name
 
-# == 2. Degree bin 사전 계산 ===================================================
-net_deg_vec <- igraph::degree(net_full)
-net_deg_df  <- data.frame(node   = names(net_deg_vec),
-                           degree = as.numeric(net_deg_vec),
-                           stringsAsFactors = FALSE)
-breaks <- unique(quantile(net_deg_df$degree,
-                           probs = seq(0, 1, length.out = N_BINS + 1)))
-net_deg_df$bin <- cut(net_deg_df$degree, breaks = breaks,
-                       labels = FALSE, include.lowest = TRUE)
-
-# bin별 후보 노드 pre-index
-bin_candidates <- split(net_deg_df$node, net_deg_df$bin)
+# 전체 네트워크 degree 사전 계산 (sampler에 전달)
+net_deg_vec <- igraph::degree(net_full)   # named numeric vector
 
 # base personalization vector
 base_pv <- setNames(rep(0.0, length(all_nodes)), all_nodes)
@@ -99,37 +124,28 @@ process_disease <- function(filepath) {
   obs_scores   <- target_df$page.rank
   target_nodes <- target_df$ENSG
 
-  # 각 seed의 degree bin
-  seed_bins <- sapply(seed_df$ENSG, function(g) {
-    if (g %in% net_deg_df$node) {
-      net_deg_df$bin[net_deg_df$node == g]
-    } else {
-      net_deg_df$bin[which.min(abs(net_deg_df$degree -
-                                     median(net_deg_df$degree)))[1]]
-    }
-  })
+  # Nearest-neighbor degree matched sampler 생성
+  # tier1_genes = 실제 seed, exclude_genes = seed (샘플링 pool에서 제외)
+  sampler <- make_nearest_match_sampler(
+    deg_all      = net_deg_vec,
+    tier1_genes  = seed_df$ENSG,
+    exclude_genes = seed_df$ENSG
+  )
 
   # == Permutation =============================================================
   null_matrix <- matrix(NA_real_, nrow = length(target_nodes), ncol = N_PERM)
 
-  # degree-bin matched random seed 넣고 N_PERM회 실행
   for (perm_idx in seq_len(N_PERM)) {
 
-    # degree-bin matched random seed 선택
-    rand_seeds <- character(n_seeds)
-    for (s in seq_len(n_seeds)) {
-      cands <- setdiff(bin_candidates[[seed_bins[s]]], seed_df$ENSG)
-      if (length(cands) == 0) cands <- net_deg_df$node
-      rand_seeds[s] <- cands[sample.int(length(cands), 1)]
-    }
+    # nearest-neighbor degree matched random seed 선택
+    rand_seeds <- sampler()
 
     # personalization vector
-    pv           <- base_pv
-    valid        <- rand_seeds %in% names(pv)
+    pv    <- base_pv
+    valid <- rand_seeds %in% names(pv)
     pv[rand_seeds[valid]] <- seed_df$padj[valid]
 
     # page_rank 재실행 = RWR 재실행
-    # net_full = 네트워크 원본 (Combined_STRINGv11_OTAR281119_FILTER.rds)
     pr_vec <- page_rank(net_full,
                          personalized = pv,
                          weights      = E(net_full)$weight)$vector
@@ -156,20 +172,27 @@ files <- sort(list.files(DATA_DIR, pattern = "\\.rds$", full.names = TRUE))
 if (!is.null(TEST_SPECIFIC)) files <- files[basename(files) %in% TEST_SPECIFIC]
 n_files <- length(files)
 
+cat(sprintf("Processing %d diseases...\n", n_files))
+
 all_results <- vector("list", n_files)
 skipped     <- character()
 
 for (i in seq_along(files)) {
   fname <- basename(files[i])
+  cat(sprintf("[%d/%d] %s ", i, n_files, gsub("nodes\\.finngen_R12_|\\.rds", "", fname)))
+
   tryCatch({
     res <- process_disease(files[i])
     if (!is.null(res)) {
       all_results[[i]] <- res
+      cat(sprintf("✓ (seeds=%d)\n", res$n_seeds[1]))
     } else {
       skipped <- c(skipped, fname)
+      cat("✗ (no seeds)\n")
     }
   }, error = function(e) {
     skipped <<- c(skipped, fname)
+    cat(sprintf("✗ (error)\n"))
   })
 }
 
@@ -179,6 +202,9 @@ if (length(all_results) == 0) stop("No results generated.")
 
 final <- do.call(rbind, all_results)
 write.csv(final, OUTPUT_FILE, row.names = FALSE)
+
+cat(sprintf("\nCompleted: %d diseases processed, %d successful\n", n_files, length(all_results)))
+cat(sprintf("Results saved to: %s\n", OUTPUT_FILE))
 
 # == 요약 ======================================================================
 cat("\n", strrep("=", 55), "\n", sep = "")
