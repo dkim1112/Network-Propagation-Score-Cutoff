@@ -11,11 +11,14 @@
 # 절차:
 # 1. padj == 0인 유전자만 분석 대상 (seed 제외)
 # 2. seed와 동일한 수 + nearest-neighbor degree matched random seeds로 N_PERM회 permutation
-#    → degree matching: 각 seed에 대해 degree 차이 0부터 점진적으로 허용
-#      (박사님 AUC_calculation.R의 make_nearest_match_sampler 기반)
+#    → 매번 page_rank 재실행 → 유전자별 null distribution 생성
+#    → degree matching 방식: 각 seed에 대해 degree 차이 0부터 점진적으로 허용
+#      (quantile bin 방식 → nearest-neighbor 방식으로 변경, 박사님 코드 기반)
 # 3. empirical p-value: p_i = (#{null >= obs} + 1) / (N_PERM + 1)
 # 4. seed 수 <= LOW_SEED_THRESHOLD 질환은 low_confidence flag
-# ※ BH FDR 보정 미적용 (empirical p-value 직접 사용)
+# ※ BH FDR 보정 미적용: N_PERM=1000 기준 최솟값 p=0.001 x 18408 = 18.4로
+#    수학적으로 통과 불가. empirical p-value 자체를 cutoff로 사용. -> 우선은 qval없음.
+#
 ################################################################################
 
 library(igraph)
@@ -213,10 +216,13 @@ cat(sprintf("Results saved: %s\n", OUTPUT_FILE))
 cat(sprintf("Successfully processed: %d/%d diseases\n", length(all_results), n_files))
 
 cat("\n", strrep("=", 55), "\n", sep = "")
-cat(sprintf("총 %d개 질환 처리\n",             length(unique(final$Trait))))
-cat(sprintf("전체 유전자-질환 쌍: %s\n",        format(nrow(final), big.mark = ",")))
-cat(sprintf("emp_pval < 0.05 쌍: %s\n",         format(sum(final$emp_pval < 0.05), big.mark = ",")))
-cat(sprintf("Low confidence (seed<=%d개): %d개 질환\n",
+cat(sprintf("완료. 총 %d개 질환 처리\n",    length(unique(final$Trait))))
+cat(sprintf("전체 유전자-질환 쌍: %s\n",     format(nrow(final), big.mark = ",")))
+cat(sprintf("emp_pval < 0.05 유전자-질환 쌍: %s\n",
+            format(sum(final$emp_pval < 0.05), big.mark = ",")))
+cat(sprintf("Low confidence 질환 (seed<=%d개): %d개 질환\n",
             LOW_SEED_THRESHOLD,
             length(unique(final$Trait[final$low_confidence]))))
+if (length(skipped) > 0)
+  cat("Skipped:", paste(skipped, collapse = ", "), "\n")
 cat(sprintf("결과 저장: %s\n", OUTPUT_FILE))

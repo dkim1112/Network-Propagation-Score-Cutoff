@@ -8,7 +8,6 @@ Output: result_np_cutoff/disease_correlations.csv
 
 import csv
 import math
-import statistics
 
 INPUT_FILE = "result_np_cutoff/np_cutoff_results.csv"
 OUTPUT_FILE = "result_np_cutoff/disease_correlations.csv"

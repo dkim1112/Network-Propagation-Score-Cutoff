@@ -36,16 +36,16 @@ FDR_ALPHA          <- 0.05
 # seed 수를 다양하게 가져간 10개 질환 (seed 1~25)
 # 전체 실행 시 TEST_SPECIFIC <- NULL 로 변경
 TEST_SPECIFIC <- c(
-  # "nodes.finngen_R12_ALCOPANCCHRON.rds",          # seed 1
-  # "nodes.finngen_R12_ABDOM_HERNIA.rds",            # seed 2
-  # "nodes.finngen_R12_L12_ATOPIC.rds",              # seed 3
+  "nodes.finngen_R12_ALCOPANCCHRON.rds",          # seed 1
+  "nodes.finngen_R12_ABDOM_HERNIA.rds",            # seed 2
+  "nodes.finngen_R12_L12_ATOPIC.rds",              # seed 3
   "nodes.finngen_R12_T1D.rds",                     # seed 5
   "nodes.finngen_R12_AUTOIMMUNE_NONTHYROID.rds",   # seed 7
-  "nodes.finngen_R12_T2D_WIDE.rds"                # seed 9
-  # "nodes.finngen_R12_I9_CHD.rds",                  # seed 11
-  # "nodes.finngen_R12_AUTOIMMUNE.rds",              # seed 13
-  # "nodes.finngen_R12_K11_IBD_STRICT.rds",          # seed 16
-  # "nodes.finngen_R12_I9_HYPTENS.rds"               # seed 25
+  "nodes.finngen_R12_T2D_WIDE.rds",                # seed 9
+  "nodes.finngen_R12_I9_CHD.rds",                  # seed 11
+  "nodes.finngen_R12_AUTOIMMUNE.rds",              # seed 13
+  "nodes.finngen_R12_K11_IBD_STRICT.rds",          # seed 16
+  "nodes.finngen_R12_I9_HYPTENS.rds"               # seed 25
 )
 # =============================================================================
 
@@ -87,6 +87,7 @@ make_nearest_match_sampler <- function(
   sampler
 }
 
+cat("Loading PPI network...\n")
 string <- as.data.frame(readRDS(NETWORK_FILE), stringsAsFactors = FALSE)
 string$combined_score <- as.numeric(string$combined_score)
 
