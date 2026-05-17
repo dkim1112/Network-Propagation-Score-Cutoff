@@ -160,31 +160,47 @@ process_disease <- function(filepath) {
 # == 병렬 실행 =================================================================
 files <- sort(list.files(DATA_DIR, pattern = "\\.rds$", full.names = TRUE))
 if (!is.null(TEST_SPECIFIC)) files <- files[basename(files) %in% TEST_SPECIFIC]
-cat(sprintf("Processing %d disease files across %d cores...\n\n", length(files), N_CORES))
+n_files <- length(files)
+
+cat(sprintf("Processing %d diseases across %d cores...\n", n_files, N_CORES))
+
+# 시작할 질환들 표시
+diseases <- gsub("nodes\\.finngen_R12_|\\.rds", "", basename(files))
+cat(sprintf("Diseases: %s\n\n", paste(diseases, collapse=", ")))
 
 t0 <- proc.time()["elapsed"]
 
+# 병렬 처리용 wrapper 함수 (진행상황 출력 포함)
+process_with_progress <- function(f) {
+  fname <- gsub("nodes\\.finngen_R12_|\\.rds", "", basename(f))
+  cat(sprintf("Starting: %s\n", fname))
+
+  tryCatch({
+    result <- process_disease(f)
+    if (!is.null(result)) {
+      cat(sprintf("✓ Completed: %s (seeds=%d)\n", fname, result$n_seeds[1]))
+      return(result)
+    } else {
+      cat(sprintf("✗ Skipped: %s (no seeds)\n", fname))
+      return(NULL)
+    }
+  }, error = function(e) {
+    cat(sprintf("✗ Error: %s (%s)\n", fname, conditionMessage(e)))
+    return(NULL)
+  })
+}
+
 # mclapply: Linux/Mac에서 fork 기반 병렬화
-# 각 worker가 net_full 등 공유 객체를 copy-on-write로 접근
-# → 메모리 효율적, 추가 네트워크 로딩 없음
 set.seed(RANDOM_SEED)
 all_results <- mclapply(
   files,
-  function(f) {
-    tryCatch(
-      process_disease(f),
-      error = function(e) {
-        message(sprintf("[ERROR] %s: %s", basename(f), conditionMessage(e)))
-        NULL
-      }
-    )
-  },
+  process_with_progress,
   mc.cores    = N_CORES,
-  mc.set.seed = TRUE    # 각 worker에 독립적 seed 부여 → 재현 가능
+  mc.set.seed = TRUE
 )
 
 elapsed <- proc.time()["elapsed"] - t0
-cat(sprintf("\n완료. 소요시간: %.0f초 (%.1f분)\n", elapsed, elapsed/60))
+cat(sprintf("\nParallel processing completed in %.0f seconds (%.1f minutes)\n", elapsed, elapsed/60))
 
 # == 결과 저장 =================================================================
 all_results <- Filter(Negate(is.null), all_results)
@@ -192,6 +208,9 @@ if (length(all_results) == 0) stop("No results generated.")
 
 final <- do.call(rbind, all_results)
 write.csv(final, OUTPUT_FILE, row.names = FALSE)
+
+cat(sprintf("Results saved: %s\n", OUTPUT_FILE))
+cat(sprintf("Successfully processed: %d/%d diseases\n", length(all_results), n_files))
 
 cat("\n", strrep("=", 55), "\n", sep = "")
 cat(sprintf("총 %d개 질환 처리\n",             length(unique(final$Trait))))
