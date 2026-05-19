@@ -22,20 +22,20 @@ NETWORK_FILE       <- "tables_expansion/Combined_STRINGv11_OTAR281119_FILTER.rds
 OUTPUT_FILE        <- "result_np_cutoff/loo_results.csv"
 N_PERM             <- 1000
 FDR_ALPHA          <- 0.05
-N_CORES            <- 48
+N_CORES            <- 48   # 서버 코어 수 직접 지정
 
 # 테스트할 질환 (seed >= 2인 것 위주)
 # 전체 실행: TEST_SPECIFIC <- NULL
 TEST_SPECIFIC <- c(
-  "nodes.finngen_R12_ABDOM_HERNIA.rds",            # seed 2
-  "nodes.finngen_R12_L12_ATOPIC.rds",              # seed 3
-  "nodes.finngen_R12_T1D.rds",                     # seed 5
-  "nodes.finngen_R12_AUTOIMMUNE_NONTHYROID.rds",   # seed 7
-  "nodes.finngen_R12_T2D_WIDE.rds",                # seed 9
-  "nodes.finngen_R12_I9_CHD.rds",                  # seed 11
-  "nodes.finngen_R12_AUTOIMMUNE.rds",              # seed 13
-  "nodes.finngen_R12_K11_IBD_STRICT.rds",          # seed 16
-  "nodes.finngen_R12_I9_HYPTENS.rds"               # seed 25
+  # "nodes.finngen_R12_ABDOM_HERNIA.rds",            # seed 2
+  # "nodes.finngen_R12_L12_ATOPIC.rds",              # seed 3
+  # "nodes.finngen_R12_T1D.rds",                     # seed 5
+  "nodes.finngen_R12_AUTOIMMUNE_NONTHYROID.rds"   # seed 7
+  # "nodes.finngen_R12_T2D_WIDE.rds",                # seed 9
+  # "nodes.finngen_R12_I9_CHD.rds"                  # seed 11
+  # "nodes.finngen_R12_AUTOIMMUNE.rds",              # seed 13
+  # "nodes.finngen_R12_K11_IBD_STRICT.rds",          # seed 16
+  # "nodes.finngen_R12_I9_HYPTENS.rds"               # seed 25
 )
 # =============================================================================
 
@@ -101,9 +101,9 @@ run_loo_single <- function(filepath, left_out_idx) {
   node$padj      <- as.numeric(node$padj)
   node$page.rank <- as.numeric(node$page.rank)
 
-  trait   <- unique(node$Trait)[1]
+  trait       <- unique(node$Trait)[1]
   all_seed_df <- node[!is.na(node$padj) & node$padj != 0, ]
-  n_seeds <- nrow(all_seed_df)
+  n_seeds     <- nrow(all_seed_df)
 
   if (n_seeds < 2) return(NULL)  # LOO 불가
 
@@ -112,19 +112,19 @@ run_loo_single <- function(filepath, left_out_idx) {
   left_out_name  <- all_seed_df$gene[left_out_idx]
   left_out_padj  <- all_seed_df$padj[left_out_idx]
 
-  # 나머지 seed (얘네한테 permutation 돌릴 것)
+  # 나머지 seed
   remaining_seed_df <- all_seed_df[-left_out_idx, ]
 
-  # 분석 대상: 나머지 유전자 전체 (left_out 포함, seed 제외)
-  # left_out은 이제 seed가 아니므로 target 유전자로 취급
-  target_df <- node[!is.na(node$padj) & node$padj == 0, ]
+  # 진행 상황 출력 (선생님 추가)
+  cat(sprintf("    LOO start: file=%s | Trait=%s | left_out_idx=%d | gene=%s (%s) | seeds_remaining=%d\n",
+              basename(filepath), trait, left_out_idx,
+              left_out_name, left_out_gene, nrow(remaining_seed_df)))
 
-  # left_out 유전자를 target에 추가
+  # 분석 대상: seed 제외 유전자 전체 + left_out 포함
+  target_df    <- node[!is.na(node$padj) & node$padj == 0, ]
   left_out_row <- all_seed_df[left_out_idx, ]
-  left_out_row$padj <- 0   # target처럼 처리
-  target_df <- rbind(target_df, left_out_row)
-
-  obs_scores   <- target_df$page.rank
+  left_out_row$padj <- 0
+  target_df    <- rbind(target_df, left_out_row)
   target_nodes <- target_df$ENSG
 
   # 나머지 seed로 sampler 구성
@@ -133,6 +133,15 @@ run_loo_single <- function(filepath, left_out_idx) {
     tier1_genes   = remaining_seed_df$ENSG,
     exclude_genes = remaining_seed_df$ENSG
   )
+
+  # obs_scores: n-1 seed로 page_rank 재실행
+  # (원본 파일 page.rank는 left_out이 seed에 포함된 상태 → 사용 불가)
+  pv_obs <- base_pv
+  valid_obs <- remaining_seed_df$ENSG %in% names(pv_obs)
+  pv_obs[remaining_seed_df$ENSG[valid_obs]] <- remaining_seed_df$padj[valid_obs]
+  pr_obs     <- page_rank(net_full, personalized = pv_obs,
+                           weights = E(net_full)$weight)$vector
+  obs_scores <- pr_obs[target_nodes]
 
   # Permutation
   null_matrix <- matrix(NA_real_, nrow = length(target_nodes), ncol = N_PERM)
@@ -150,70 +159,67 @@ run_loo_single <- function(filepath, left_out_idx) {
   count_ge <- rowSums(null_matrix >= obs_scores, na.rm = TRUE)
   emp_pval <- (count_ge + 1) / (N_PERM + 1)
 
-  # left_out 유전자의 결과만 추출
-  left_out_pos    <- which(target_df$ENSG == left_out_gene)
-  left_out_pval   <- emp_pval[left_out_pos]
-  left_out_pr     <- obs_scores[left_out_pos]
-
-  # 유의 여부 판단 (뺀거의 emp_pval < FDR_ALPHA 이면 recovery 성공)
-  recovered       <- left_out_pval < FDR_ALPHA
+  left_out_pos  <- which(target_nodes == left_out_gene)
+  left_out_pval <- emp_pval[left_out_pos]
+  left_out_pr   <- obs_scores[left_out_pos]
+  recovered     <- left_out_pval < FDR_ALPHA
 
   data.frame(
-    Trait            = trait,
-    n_seeds_total    = n_seeds,
-    n_seeds_used     = nrow(remaining_seed_df),
-    left_out_ENSG    = left_out_gene,
-    left_out_gene    = left_out_name,
-    left_out_padj    = left_out_padj,
-    left_out_pagerank= left_out_pr,
-    emp_pval_loo     = left_out_pval,
-    recovered        = recovered,
-    stringsAsFactors = FALSE
+    Trait             = trait,
+    n_seeds_total     = n_seeds,
+    n_seeds_used      = nrow(remaining_seed_df),
+    left_out_ENSG     = left_out_gene,
+    left_out_gene     = left_out_name,
+    left_out_padj     = left_out_padj,
+    left_out_pagerank = left_out_pr,
+    emp_pval_loo      = left_out_pval,
+    recovered         = recovered,
+    stringsAsFactors  = FALSE
   )
 }
 
-# == 질환별 LOO 실행 함수 ======================================================
-# 각 질환에서 seed 하나씩 순서대로 제외하며 실행
-process_disease_loo <- function(filepath) {
+# == 병렬 실행: (disease, seed_idx) 쌍 단위 ====================================
+# 기존: mclapply(diseases) → 내부 lapply(seed_idx)
+#   문제: disease 수만큼만 코어 사용 (테스트 1개 질환 → 코어 1개만 사용)
+#
+# 수정: 모든 (disease, seed_idx) 쌍을 미리 목록으로 만들고 쌍 단위로 병렬화
+#   효과: 전체 LOO 케이스 수만큼 코어 활용 가능
+#   예) 225개 질환 × 평균 5 seed = 1,124개 작업 → 48코어 동시 처리
 
-  node <- as.data.frame(readRDS(filepath), stringsAsFactors = FALSE)
-  node$padj <- as.numeric(node$padj)
-  seed_df   <- node[!is.na(node$padj) & node$padj != 0, ]
-  n_seeds   <- nrow(seed_df)
-
-  if (n_seeds < 2) {
-    trait <- unique(node$Trait)[1]
-    message(sprintf("[SKIP] %s: seed %d개 (LOO 최소 2개 필요)", trait, n_seeds))
-    return(NULL)
-  }
-
-  # 각 seed를 하나씩 제외하며 실행
-  results <- lapply(seq_len(n_seeds), function(i) {
-    tryCatch(
-      run_loo_single(filepath, i),
-      error = function(e) {
-        message(sprintf("  LOO error idx=%d: %s", i, conditionMessage(e)))
-        NULL
-      }
-    )
-  })
-
-  do.call(rbind, Filter(Negate(is.null), results))
-}
-
-# == 병렬 실행 =================================================================
 files <- sort(list.files(DATA_DIR, pattern = "\\.rds$", full.names = TRUE))
 if (!is.null(TEST_SPECIFIC))
   files <- files[basename(files) %in% TEST_SPECIFIC]
-cat(sprintf("Processing %d disease files (LOO) across %d cores...\n\n",
-            length(files), N_CORES))
+
+# (filepath, seed_idx) 쌍 목록 생성
+loo_jobs <- do.call(rbind, lapply(files, function(f) {
+  node    <- as.data.frame(readRDS(f), stringsAsFactors = FALSE)
+  node$padj <- as.numeric(node$padj)
+  n_seeds <- sum(!is.na(node$padj) & node$padj != 0)
+  if (n_seeds < 2) return(NULL)
+  data.frame(filepath = f, seed_idx = seq_len(n_seeds),
+             stringsAsFactors = FALSE)
+}))
+
+cat(sprintf("총 LOO 작업 수: %d  (%d diseases × seed 수)\n",
+            nrow(loo_jobs), length(files)))
 
 t0 <- proc.time()["elapsed"]
 set.seed(42)
 
 all_results <- mclapply(
-  files,
-  process_disease_loo,
+  seq_len(nrow(loo_jobs)),
+  function(i) {
+    tryCatch(
+      run_loo_single(loo_jobs$filepath[i], loo_jobs$seed_idx[i]),
+      error = function(e) {
+        message(sprintf("[ERROR] %s seed_idx=%d: %s",
+                        basename(loo_jobs$filepath[i]),
+                        loo_jobs$seed_idx[i],
+                        conditionMessage(e)))
+        NULL
+      }
+    )
+  },
   mc.cores    = N_CORES,
   mc.set.seed = TRUE
 )
@@ -240,9 +246,9 @@ cat(sprintf("Recovery (emp_pval < %.2f): %d / %d (%.1f%%)\n",
 
 cat("\n질환별 recovery 요약:\n")
 for (trait in unique(final$Trait)) {
-  sub       <- final[final$Trait == trait, ]
-  n_rec     <- sum(sub$recovered)
-  n_total   <- nrow(sub)
+  sub     <- final[final$Trait == trait, ]
+  n_rec   <- sum(sub$recovered)
+  n_total <- nrow(sub)
   cat(sprintf("  %-40s %d / %d recovered\n",
               gsub("finngen_R12_","",trait), n_rec, n_total))
 }
