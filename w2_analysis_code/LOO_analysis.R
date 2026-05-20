@@ -19,9 +19,12 @@ if (!requireNamespace("pbmcapply", quietly = TRUE)) install.packages("pbmcapply"
 library(pbmcapply) # 실시간 프로그레스 바를 위한 패키지 추가
 
 # == 파라미터 ==================================================================
-DATA_DIR           <- "result_network_propagation"
-NETWORK_FILE       <- "tables_expansion/Combined_STRINGv11_OTAR281119_FILTER.rds"
-OUTPUT_FILE        <- "result_np_cutoff/loo_results.csv"
+# Set absolute paths based on project structure
+base_dir <- "/Users/kde/Documents/Network-Propagation-Score-Cutoff"
+
+DATA_DIR           <- file.path(base_dir, "result_network_propagation")
+NETWORK_FILE       <- file.path(base_dir, "tables_expansion/Combined_STRINGv11_OTAR281119_FILTER.rds")
+OUTPUT_FILE        <- file.path(base_dir, "result_np_cutoff/loo_results.csv")
 N_PERM             <- 10000
 FDR_ALPHA          <- 0.05
 N_CORES            <- 48   # 서버 코어 수 직접 지정
