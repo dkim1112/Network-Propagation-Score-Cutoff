@@ -11,6 +11,12 @@
 #
 # 조건: seed 수 >= 2인 질환만 (seed가 1개면 LOO 후 남는 seed가 없음)
 # + Assuming we have access to server - 병렬처리 할 것임.
+#
+# Run via: nohup Rscript w2_analysis_code/LOO_analysis.R > loo_analysis.log 2>&1 &
+#
+# Check CPU progress: 
+# -> ps -p (replace with PID) -o pid,stat,etime,pcpu,pmem,cmd
+# -> ps --ppid (replace with PID) -o pid,stat,etime,pcpu,pmem,cmd
 ################################################################################
 
 library(igraph)
@@ -35,7 +41,7 @@ cat(sprintf("Project base directory: %s\n", base_dir))
 DATA_DIR           <- file.path(base_dir, "result_network_propagation")
 NETWORK_FILE       <- file.path(base_dir, "tables_expansion/Combined_STRINGv11_OTAR281119_FILTER.rds")
 OUTPUT_FILE        <- file.path(base_dir, "result_np_cutoff/loo_results.csv")
-N_PERM             <- 10000
+N_PERM             <- 1000
 FDR_ALPHA          <- 0.05
 N_CORES            <- 48   # 서버 코어 수 직접 지정
 
@@ -130,12 +136,12 @@ run_loo_single <- function(filepath, left_out_idx) {
   # 나머지 seed
   remaining_seed_df <- all_seed_df[-left_out_idx, ]
 
-  # 진행 상황 출력 (더 간결하게)
-  if (left_out_idx == 1) {
-    cat(sprintf("Processing %s (%d seeds)...\n",
-                gsub("nodes.finngen_R12_", "", gsub(".rds", "", basename(filepath))),
-                n_seeds))
-  }
+  disease_label <- gsub("^nodes\\.finngen_R12_", "", basename(filepath))
+  disease_label <- gsub("\\.rds$", "", disease_label)
+  cat(sprintf(
+    "[START] %s | LOO %d/%d | left-out=%s | remaining=%d\n",
+    disease_label, left_out_idx, n_seeds, left_out_name, nrow(remaining_seed_df)
+  ))
 
   # 분석 대상: seed 제외 유전자 전체 + left_out 포함
   target_df    <- node[!is.na(node$padj) & node$padj == 0, ]
@@ -162,6 +168,10 @@ run_loo_single <- function(filepath, left_out_idx) {
 
   # Permutation
   null_matrix <- matrix(NA_real_, nrow = length(target_nodes), ncol = N_PERM)
+  perm_progress_step <- max(1L, floor(N_PERM / 5))
+
+  cat(sprintf("[PERM] %s | LOO %d/%d | starting %d permutations\n",
+              disease_label, left_out_idx, n_seeds, N_PERM))
 
   for (perm_idx in seq_len(N_PERM)) {
     rand_seeds <- sampler()
@@ -171,6 +181,11 @@ run_loo_single <- function(filepath, left_out_idx) {
     pr_vec <- page_rank(net_full, personalized = pv,
                          weights = E(net_full)$weight)$vector
     null_matrix[, perm_idx] <- pr_vec[target_nodes]
+
+    if (perm_idx == 1L || perm_idx %% perm_progress_step == 0L || perm_idx == N_PERM) {
+      cat(sprintf("[PERM] %s | LOO %d/%d | %d/%d done\n",
+                  disease_label, left_out_idx, n_seeds, perm_idx, N_PERM))
+    }
   }
 
   count_ge <- rowSums(null_matrix >= obs_scores, na.rm = TRUE)
@@ -181,7 +196,7 @@ run_loo_single <- function(filepath, left_out_idx) {
   left_out_pr   <- obs_scores[left_out_pos]
   recovered     <- left_out_pval < FDR_ALPHA
 
-  data.frame(
+  result <- data.frame(
     Trait             = trait,
     n_seeds_total     = n_seeds,
     n_seeds_used      = nrow(remaining_seed_df),
@@ -193,6 +208,10 @@ run_loo_single <- function(filepath, left_out_idx) {
     recovered         = recovered,
     stringsAsFactors  = FALSE
   )
+
+  cat(sprintf("[DONE] %s | LOO %d/%d | emp_pval=%.4g | recovered=%s\n",
+              disease_label, left_out_idx, n_seeds, left_out_pval, recovered))
+  result
 }
 
 # == 병렬 실행: (disease, seed_idx) 쌍 단위 ====================================
