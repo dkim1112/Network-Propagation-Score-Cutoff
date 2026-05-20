@@ -32,7 +32,7 @@ start_analysis() {
     echo "To stop: kill \$(cat $PID_FILE)"
 }
 
-# Function to check if analysis is running
+# Function to check if analysis is running!
 check_status() {
     if [ -f "$PID_FILE" ]; then
         PID=$(cat "$PID_FILE")
