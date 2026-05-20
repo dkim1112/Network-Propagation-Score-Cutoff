@@ -19,8 +19,18 @@ if (!requireNamespace("pbmcapply", quietly = TRUE)) install.packages("pbmcapply"
 library(pbmcapply) # 실시간 프로그레스 바를 위한 패키지 추가
 
 # == 파라미터 ==================================================================
-# Set absolute paths based on project structure
-base_dir <- "/Users/kde/Documents/Network-Propagation-Score-Cutoff"
+# Set paths relative to current working directory or auto-detect
+if (file.exists("tables_expansion/Combined_STRINGv11_OTAR281119_FILTER.rds")) {
+  # Running from project root
+  base_dir <- getwd()
+} else if (file.exists("../tables_expansion/Combined_STRINGv11_OTAR281119_FILTER.rds")) {
+  # Running from subdirectory (like w2_analysis_code)
+  base_dir <- dirname(getwd())
+} else {
+  stop("Cannot find project files. Please run from project root or w2_analysis_code directory.")
+}
+
+cat(sprintf("Project base directory: %s\n", base_dir))
 
 DATA_DIR           <- file.path(base_dir, "result_network_propagation")
 NETWORK_FILE       <- file.path(base_dir, "tables_expansion/Combined_STRINGv11_OTAR281119_FILTER.rds")
