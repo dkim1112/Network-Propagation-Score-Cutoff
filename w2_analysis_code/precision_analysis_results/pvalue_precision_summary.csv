@@ -1,0 +1,7 @@
+metric,value
+total_cases,40.0
+correlation,0.9987866196335288
+mean_abs_diff,0.008855185909980426
+max_abs_diff,0.05190210249704302
+recovery_changes,0.0
+change_rate_percent,0.0
