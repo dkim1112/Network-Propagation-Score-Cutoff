@@ -117,10 +117,12 @@ run_loo_single <- function(filepath, left_out_idx) {
   # 나머지 seed
   remaining_seed_df <- all_seed_df[-left_out_idx, ]
 
-  # 진행 상황 출력 (선생님 추가)
-  cat(sprintf("    LOO start: file=%s | left_out_idx=%d | gene=%s (%s) \n",
-              basename(filepath), left_out_idx,
-              left_out_name, left_out_gene))
+  # 진행 상황 출력 (더 간결하게)
+  if (left_out_idx == 1) {
+    cat(sprintf("Processing %s (%d seeds)...\n",
+                gsub("nodes.finngen_R12_", "", gsub(".rds", "", basename(filepath))),
+                n_seeds))
+  }
 
   # 분석 대상: seed 제외 유전자 전체 + left_out 포함
   target_df    <- node[!is.na(node$padj) & node$padj == 0, ]
@@ -208,13 +210,16 @@ cat(sprintf("총 LOO 작업 수: %d  (%d diseases × seed 수)\n",
 t0 <- proc.time()["elapsed"]
 set.seed(42)
 
+cat(sprintf("Starting parallel LOO analysis with %d cores...\n", N_CORES))
+
 all_results <- pbmclapply(
   seq_len(nrow(loo_jobs)),
   function(i) {
     tryCatch(
       run_loo_single(loo_jobs$filepath[i], loo_jobs$seed_idx[i]),
       error = function(e) {
-        message(sprintf("[ERROR] %s seed_idx=%d: %s",
+        message(sprintf("[ERROR] Task %d/%d - %s seed_idx=%d: %s",
+                        i, nrow(loo_jobs),
                         basename(loo_jobs$filepath[i]),
                         loo_jobs$seed_idx[i],
                         conditionMessage(e)))
@@ -222,8 +227,11 @@ all_results <- pbmclapply(
       }
     )
   },
-  mc.cores    = N_CORES,
-  mc.set.seed = TRUE
+  mc.cores          = N_CORES,
+  mc.set.seed       = TRUE,
+  mc.style          = "ETA",     # Show ETA in progress bar
+  mc.substyle       = 3,         # More detailed progress bar
+  mc.silent         = FALSE      # Show progress messages
 )
 
 elapsed <- proc.time()["elapsed"] - t0
