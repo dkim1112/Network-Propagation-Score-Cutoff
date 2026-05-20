@@ -15,12 +15,14 @@
 
 library(igraph)
 library(parallel)
+if (!requireNamespace("pbmcapply", quietly = TRUE)) install.packages("pbmcapply")
+library(pbmcapply) # 실시간 프로그레스 바를 위한 패키지 추가
 
 # == 파라미터 ==================================================================
 DATA_DIR           <- "result_network_propagation"
 NETWORK_FILE       <- "tables_expansion/Combined_STRINGv11_OTAR281119_FILTER.rds"
 OUTPUT_FILE        <- "result_np_cutoff/loo_results.csv"
-N_PERM             <- 1000
+N_PERM             <- 10000
 FDR_ALPHA          <- 0.05
 N_CORES            <- 48   # 서버 코어 수 직접 지정
 
@@ -30,11 +32,11 @@ TEST_SPECIFIC <- c(
   # "nodes.finngen_R12_ABDOM_HERNIA.rds",            # seed 2
   # "nodes.finngen_R12_L12_ATOPIC.rds",              # seed 3
   # "nodes.finngen_R12_T1D.rds",                     # seed 5
-  "nodes.finngen_R12_AUTOIMMUNE_NONTHYROID.rds"   # seed 7
+  # "nodes.finngen_R12_AUTOIMMUNE_NONTHYROID.rds"   # seed 7
   # "nodes.finngen_R12_T2D_WIDE.rds",                # seed 9
-  # "nodes.finngen_R12_I9_CHD.rds"                  # seed 11
-  # "nodes.finngen_R12_AUTOIMMUNE.rds",              # seed 13
-  # "nodes.finngen_R12_K11_IBD_STRICT.rds",          # seed 16
+  "nodes.finngen_R12_I9_CHD.rds",                  # seed 11
+  "nodes.finngen_R12_AUTOIMMUNE.rds",              # seed 13
+  "nodes.finngen_R12_K11_IBD_STRICT.rds"          # seed 16
   # "nodes.finngen_R12_I9_HYPTENS.rds"               # seed 25
 )
 # =============================================================================
@@ -116,9 +118,9 @@ run_loo_single <- function(filepath, left_out_idx) {
   remaining_seed_df <- all_seed_df[-left_out_idx, ]
 
   # 진행 상황 출력 (선생님 추가)
-  cat(sprintf("    LOO start: file=%s | Trait=%s | left_out_idx=%d | gene=%s (%s) | seeds_remaining=%d\n",
-              basename(filepath), trait, left_out_idx,
-              left_out_name, left_out_gene, nrow(remaining_seed_df)))
+  cat(sprintf("    LOO start: file=%s | left_out_idx=%d | gene=%s (%s) \n",
+              basename(filepath), left_out_idx,
+              left_out_name, left_out_gene))
 
   # 분석 대상: seed 제외 유전자 전체 + left_out 포함
   target_df    <- node[!is.na(node$padj) & node$padj == 0, ]
@@ -206,7 +208,7 @@ cat(sprintf("총 LOO 작업 수: %d  (%d diseases × seed 수)\n",
 t0 <- proc.time()["elapsed"]
 set.seed(42)
 
-all_results <- mclapply(
+all_results <- pbmclapply(
   seq_len(nrow(loo_jobs)),
   function(i) {
     tryCatch(
