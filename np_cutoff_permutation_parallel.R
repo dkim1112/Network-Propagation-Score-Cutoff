@@ -39,16 +39,37 @@ N_CORES <- NULL
 
 # 전체 실행 시 TEST_SPECIFIC <- NULL 로 변경
 TEST_SPECIFIC <- c(
-  "nodes.finngen_R12_ALCOPANCCHRON.rds",
-  "nodes.finngen_R12_ABDOM_HERNIA.rds",
-  "nodes.finngen_R12_L12_ATOPIC.rds",
-  "nodes.finngen_R12_T1D.rds",
-  "nodes.finngen_R12_AUTOIMMUNE_NONTHYROID.rds",
-  "nodes.finngen_R12_T2D_WIDE.rds",
-  "nodes.finngen_R12_I9_CHD.rds",
-  "nodes.finngen_R12_AUTOIMMUNE.rds",
-  "nodes.finngen_R12_K11_IBD_STRICT.rds",
-  "nodes.finngen_R12_I9_HYPTENS.rds"
+  # "nodes.finngen_R12_ALCOPANCCHRON.rds",
+  # "nodes.finngen_R12_ABDOM_HERNIA.rds",
+  # "nodes.finngen_R12_L12_ATOPIC.rds",
+  # "nodes.finngen_R12_T1D.rds",
+  # "nodes.finngen_R12_AUTOIMMUNE_NONTHYROID.rds",
+  # "nodes.finngen_R12_T2D_WIDE.rds",
+  # "nodes.finngen_R12_I9_CHD.rds",
+  # "nodes.finngen_R12_AUTOIMMUNE.rds",
+  # "nodes.finngen_R12_K11_IBD_STRICT.rds",
+  # "nodes.finngen_R12_I9_HYPTENS.rds"
+
+  # seed >= 5개인 질환들
+  "nodes.finngen_R12_I9_HYPTENS.rds",                    # seed 25
+  "nodes.finngen_R12_K11_IBD_STRICT.rds",                # seed 16
+  "nodes.finngen_R12_AUTOIMMUNE.rds",                    # seed 13
+  "nodes.finngen_R12_I9_CHD.rds",                        # seed 11
+  "nodes.finngen_R12_T2D_WIDE.rds",                      # seed 9
+  "nodes.finngen_R12_AUTOIMMUNE_NONTHYROID.rds",         # seed 7
+  "nodes.finngen_R12_C3_BASAL_CELL_CARCINOMA_EXALLC.rds",# seed 12
+  "nodes.finngen_R12_C3_BASAL_CELL_CARCINOMA_INCLAVO_EXALLC.rds", # seed 12
+  "nodes.finngen_R12_C3_PROSTATE_EXALLC.rds",            # seed 8
+  "nodes.finngen_R12_C3_OTHER_SKIN_EXALLC.rds",          # seed 8
+  "nodes.finngen_R12_C3_SKIN_EXALLC.rds",                # seed 8
+  "nodes.finngen_R12_CARDIAC_ARRHYTM.rds",               # seed 9
+  "nodes.finngen_R12_T1D.rds",                           # seed 5
+  "nodes.finngen_R12_ASTHMMA_ACUTE_RESPIRATORY_INFECTIONS.rds", # seed 7
+  "nodes.finngen_R12_AD_LO_EXMORE.rds",                  # seed 6
+  "nodes.finngen_R12_AD_EO_EXMORE.rds",                  # seed 5
+  "nodes.finngen_R12_ALLERG_ASTHMA.rds",                 # seed 6
+  "nodes.finngen_R12_ASTHMA_INFECTIONS.rds",             # seed 6
+  "nodes.finngen_R12_ASTHMA_CHILD_EXMORE.rds",           # seed 5
 )
 # =============================================================================
 
