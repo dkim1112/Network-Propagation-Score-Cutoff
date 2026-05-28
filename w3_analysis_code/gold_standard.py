@@ -3,13 +3,12 @@
 Gold Standard Validation
 목적: empirical p-value가 유의한 유전자들이 실제로 의미있는지 검증
 
-Gold Standard 기준 (2가지 + AI, 조정 가능):
+Gold Standard 기준 (2가지, 조정 가능):
 1. OpenTargets globalScore >= OT_SCORE_CUTOFF
 2. clinical_precedence > 0 (ChEMBL 기반 임상/약물 근거)
    ※ OpenTargets API에서 "chembl" datasource가 별도로 존재하지 않음.
       clinical_precedence 컬럼이 ChEMBL approved drug target을 포함하는
       임상 근거 기반 점수임.
-3. AI (ChatGPT) known genes: AI_GOLD 딕셔너리에 수동 입력
 
 사용법:
     pip install requests pandas
@@ -31,6 +30,7 @@ OUTPUT_DIR      = SCRIPT_DIR
 
 OT_SCORE_CUTOFF = 0.3   # OpenTargets globalScore 기준 (0~1)
                          # 0.1=상위30%, 0.3=상위12%, 0.5=상위2.6%
+CLINICAL_CUTOFF = 0.5  # clinical_precedence numeric cutoff (>=)
 
 COMBINE_MODE    = "OR"  # "OR": OT score OR clinical_precedence
                          # "AND": 둘 다 해당
@@ -85,24 +85,6 @@ TRAIT_TO_OT_ID = {
     "finngen_R12_ALLERG_ASTHMA":                         "MONDO_0004784", # allergic asthma
     "finngen_R12_ASTHMA_CHILD_EXMORE":                   "MONDO_0005405", # childhood asthma
     "finngen_R12_AD_EO_EXMORE":                          "MONDO_0004975" # Alzheimer's disease early onset
-}
-
-# == AI gold standard (수동 입력 - 추후 교체 가능) ============================
-AI_GOLD = {
-    "finngen_R12_AUTOIMMUNE":           [],
-    "finngen_R12_I9_CHD":               [],
-    "finngen_R12_I9_HYPTENS":           [],
-    "finngen_R12_K11_IBD_STRICT":       [],
-    "finngen_R12_L12_ATOPIC":           [],
-    "finngen_R12_T1D":                  [],
-    "finngen_R12_T2D_WIDE":             [],
-    "finngen_R12_CARDIAC_ARRHYTM":      [],
-    "finngen_R12_C3_PROSTATE_EXALLC":   [],
-    "finngen_R12_C3_BASAL_CELL_CARCINOMA_EXALLC":        [],
-    "finngen_R12_C3_SKIN_EXALLC":       [],
-    "finngen_R12_ALLERG_ASTHMA":        [],
-    "finngen_R12_ASTHMA_CHILD_EXMORE":  [],
-    "finngen_R12_AD_EO_EXMORE":         [],
 }
 
 # == OpenTargets GraphQL ======================================================
@@ -192,64 +174,61 @@ for trait in sorted(df['Trait'].unique()):
 
     # Gold standard 집합
     ot_gold       = set(ot_df[ot_df['globalScore'] >= OT_SCORE_CUTOFF]['symbol'])
-    clinical_gold = set(ot_df[ot_df['has_clinical']]['symbol'])
-    ai_gold       = set(AI_GOLD.get(trait, []))
+    clinical_gold = set(ot_df[ot_df['clinical_score'] >= CLINICAL_CUTOFF]['symbol'])
 
-    if COMBINE_MODE == "OR":
-        db_gold = ot_gold | clinical_gold
-    else:
-        db_gold = ot_gold & clinical_gold
+    # Evaluate both OR and AND combination modes and record results for both
+    for mode in ("OR", "AND"):
+        if mode == "OR":
+            db_gold = ot_gold | clinical_gold
+        else:
+            db_gold = ot_gold & clinical_gold
 
-    any_gold = db_gold | ai_gold
+        print(f"  Mode={mode} | OT (>={OT_SCORE_CUTOFF}): {len(ot_gold):4d} | "
+              f"clinical_precedence(>={CLINICAL_CUTOFF}): {len(clinical_gold):4d} | "
+              f"Any: {len(db_gold):4d}")
 
-    print(f"  OT (>={OT_SCORE_CUTOFF}): {len(ot_gold):4d} | "
-          f"clinical_precedence: {len(clinical_gold):4d} | "
-          f"AI: {len(ai_gold):4d} | "
-          f"Any: {len(any_gold):4d}")
+        # 유전자별 표시
+        sub_mode = sub.copy()
+        sub_mode['ot_score']       = sub_mode['gene'].map(ot_df.set_index('symbol')['globalScore'])
+        sub_mode['ot_gold']        = sub_mode['gene'].isin(ot_gold)
+        sub_mode['clinical_gold']  = sub_mode['gene'].isin(clinical_gold)
+        sub_mode['gold']           = sub_mode['gene'].isin(db_gold)
+        sub_mode['combine_mode']   = mode
 
-    # 유전자별 표시
-    sub = sub.copy()
-    sub['ot_score']       = sub['gene'].map(ot_df.set_index('symbol')['globalScore'])
-    sub['ot_gold']        = sub['gene'].isin(ot_gold)
-    sub['clinical_gold']  = sub['gene'].isin(clinical_gold)
-    sub['ai_gold']        = sub['gene'].isin(ai_gold)
-    sub['any_gold']       = sub['gene'].isin(any_gold)
+        # 카테고리
+        def cat(row):
+            s, g = row['significant'], row['gold']
+            if   s and     g: return "TP"
+            elif s and not g: return "Novel_sig"
+            elif not s and g: return "FN"
+            else:             return "TN"
+        sub_mode['category'] = sub_mode.apply(cat, axis=1)
+        all_results.append(sub_mode)
 
-    # 카테고리
-    def cat(row):
-        s, g = row['significant'], row['any_gold']
-        if   s and     g: return "TP"
-        elif s and not g: return "Novel_sig"
-        elif not s and g: return "FN"
-        else:             return "TN"
-    sub['category'] = sub.apply(cat, axis=1)
-    all_results.append(sub)
+        # 통계
+        n_sig  = int(sub_mode['significant'].sum())
+        n_gold = int(sub_mode['gold'].sum())
+        tp     = int((sub_mode['category'] == 'TP').sum())
+        novel  = int((sub_mode['category'] == 'Novel_sig').sum())
+        fn     = int((sub_mode['category'] == 'FN').sum())
+        prec   = tp / n_sig  * 100 if n_sig  > 0 else 0
+        sens   = tp / n_gold * 100 if n_gold > 0 else 0
 
-    # 통계
-    n_sig  = int(sub['significant'].sum())
-    n_gold = int(sub['any_gold'].sum())
-    tp     = int((sub['category'] == 'TP').sum())
-    novel  = int((sub['category'] == 'Novel_sig').sum())
-    fn     = int((sub['category'] == 'FN').sum())
-    prec   = tp / n_sig  * 100 if n_sig  > 0 else 0
-    sens   = tp / n_gold * 100 if n_gold > 0 else 0
+        print(f"  Mode={mode} | Sig={n_sig} | TP={tp} | Novel_sig={novel} | FN={fn}")
+        print(f"  Mode={mode} | Precision={prec:.1f}% | Sensitivity={sens:.1f}%")
 
-    print(f"  Sig={n_sig} | TP={tp} | Novel_sig={novel} | FN={fn}")
-    print(f"  Precision={prec:.1f}% | Sensitivity={sens:.1f}%")
-
-    summary_rows.append({
-        'Trait': short, 'n_seeds': int(sub['n_seeds'].iloc[0]),
-        'n_significant': n_sig,
-        'n_ot_gold': len(ot_gold),
-        'n_clinical_gold': len(clinical_gold),
-        'n_ai_gold': len(ai_gold),
-        'n_any_gold': n_gold,
-        'TP': tp, 'Novel_sig': novel, 'FN': fn,
-        'precision_pct': round(prec, 2),
-        'sensitivity_pct': round(sens, 2),
-        'ot_cutoff': OT_SCORE_CUTOFF,
-        'combine_mode': COMBINE_MODE,
-    })
+        summary_rows.append({
+            'Trait': short, 'n_seeds': int(sub_mode['n_seeds'].iloc[0]),
+            'n_significant': n_sig,
+            'n_ot_gold': len(ot_gold),
+            'n_clinical_gold': len(clinical_gold),
+            'n_any_gold': len(db_gold),
+            'TP': tp, 'Novel_sig': novel, 'FN': fn,
+            'precision_pct': round(prec, 2),
+            'sensitivity_pct': round(sens, 2),
+            'ot_cutoff': OT_SCORE_CUTOFF,
+            'combine_mode': mode,
+        })
 
 # == 저장 =====================================================================
 final   = pd.concat(all_results, ignore_index=True)

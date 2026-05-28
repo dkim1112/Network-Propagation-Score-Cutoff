@@ -1,0 +1,391 @@
+nohup: ignoring input
+
+Attaching package: ‘igraph’
+
+The following objects are masked from ‘package:stats’:
+
+    decompose, spectrum
+
+The following object is masked from ‘package:base’:
+
+    union
+
+Project base directory: /BiO2/home/daniel/Network-Propagation-Score-Cutoff
+사용 코어 수: 48
+Loading PPI network...
+Network: 18410 nodes, 571917 edges
+
+총 LOO 작업 수: 40  (3 diseases × seed 수)
+Starting parallel LOO analysis with 48 cores...
+[START] AUTOIMMUNE | LOO 1/13 | left-out=PHLDB1 | remaining=12
+[START] AUTOIMMUNE | LOO 2/13 | left-out=C5 | remaining=12
+[START] AUTOIMMUNE | LOO 3/13 | left-out=CSF3 | remaining=12
+[START] AUTOIMMUNE | LOO 4/13 | left-out=SH2B3 | remaining=12
+[START] AUTOIMMUNE | LOO 5/13 | left-out=TXNDC9 | remaining=12
+[START] AUTOIMMUNE | LOO 7/13 | left-out=C1QTNF6 | remaining=12
+[START] AUTOIMMUNE | LOO 9/13 | left-out=DTNB | remaining=12
+[START] AUTOIMMUNE | LOO 6/13 | left-out=TNFSF11 | remaining=12
+[START] AUTOIMMUNE | LOO 10/13 | left-out=TIMP4 | remaining=12
+[START] AUTOIMMUNE | LOO 12/13 | left-out=BCL2L15 | remaining=12
+[START] AUTOIMMUNE | LOO 13/13 | left-out=FGFR1OP | remaining=12
+[START] AUTOIMMUNE | LOO 8/13 | left-out=IL10 | remaining=12
+[START] AUTOIMMUNE | LOO 11/13 | left-out=IL7R | remaining=12
+[START] I9_CHD | LOO 1/11 | left-out=SH2B3 | remaining=10
+[START] I9_CHD | LOO 3/11 | left-out=NCAN | remaining=10
+[START] I9_CHD | LOO 4/11 | left-out=FURIN | remaining=10
+[START] I9_CHD | LOO 2/11 | left-out=VAMP8 | remaining=10
+[START] I9_CHD | LOO 5/11 | left-out=CELSR2 | remaining=10
+[START] I9_CHD | LOO 8/11 | left-out=NOS3 | remaining=10
+[START] I9_CHD | LOO 6/11 | left-out=SERPINH1 | remaining=10
+[START] I9_CHD | LOO 11/11 | left-out=LPA | remaining=10
+[START] I9_CHD | LOO 7/11 | left-out=ING1 | remaining=10
+[START] I9_CHD | LOO 9/11 | left-out=VAMP5 | remaining=10
+[START] K11_IBD_STRICT | LOO 1/16 | left-out=TNFRSF9 | remaining=15
+[START] I9_CHD | LOO 10/11 | left-out=PCSK9 | remaining=10
+[START] K11_IBD_STRICT | LOO 2/16 | left-out=FCGR2B | remaining=15
+[START] K11_IBD_STRICT | LOO 5/16 | left-out=PRKAB1 | remaining=15
+[START] K11_IBD_STRICT | LOO 3/16 | left-out=CSF3 | remaining=15
+[START] K11_IBD_STRICT | LOO 4/16 | left-out=CCL7 | remaining=15
+[START] K11_IBD_STRICT | LOO 6/16 | left-out=PARK7 | remaining=15
+[START] K11_IBD_STRICT | LOO 7/16 | left-out=IL10 | remaining=15
+[START] K11_IBD_STRICT | LOO 8/16 | left-out=SKAP1 | remaining=15
+[START] K11_IBD_STRICT | LOO 9/16 | left-out=FCGR2A | remaining=15
+[START] K11_IBD_STRICT | LOO 10/16 | left-out=MXRA8 | remaining=15
+[START] K11_IBD_STRICT | LOO 11/16 | left-out=FCAMR | remaining=15
+[START] K11_IBD_STRICT | LOO 13/16 | left-out=TDRKH | remaining=15
+[START] K11_IBD_STRICT | LOO 14/16 | left-out=FGFR1OP | remaining=15
+[START] K11_IBD_STRICT | LOO 12/16 | left-out=MST1 | remaining=15
+[START] K11_IBD_STRICT | LOO 15/16 | left-out=CPTP | remaining=15
+[START] K11_IBD_STRICT | LOO 16/16 | left-out=TNFRSF6B | remaining=15
+[PERM] AUTOIMMUNE | LOO 1/13 | starting 1000 permutations
+[PERM] AUTOIMMUNE | LOO 5/13 | starting 1000 permutations
+[PERM] AUTOIMMUNE | LOO 7/13 | starting 1000 permutations
+[PERM] AUTOIMMUNE | LOO 9/13 | starting 1000 permutations
+[PERM] AUTOIMMUNE | LOO 4/13 | starting 1000 permutations
+[PERM] AUTOIMMUNE | LOO 12/13 | starting 1000 permutations
+[PERM] AUTOIMMUNE | LOO 10/13 | starting 1000 permutations
+[PERM] I9_CHD | LOO 4/11 | starting 1000 permutations
+[PERM] I9_CHD | LOO 8/11 | starting 1000 permutations
+[PERM] AUTOIMMUNE | LOO 11/13 | starting 1000 permutations
+[PERM] K11_IBD_STRICT | LOO 1/16 | starting 1000 permutations
+[PERM] AUTOIMMUNE | LOO 8/13 | starting 1000 permutations
+[PERM] K11_IBD_STRICT | LOO 2/16 | starting 1000 permutations
+[PERM] K11_IBD_STRICT | LOO 4/16 | starting 1000 permutations
+[PERM] K11_IBD_STRICT | LOO 14/16 | starting 1000 permutations
+[PERM] K11_IBD_STRICT | LOO 6/16 | starting 1000 permutations
+[PERM] AUTOIMMUNE | LOO 6/13 | starting 1000 permutations
+[PERM] I9_CHD | LOO 1/11 | starting 1000 permutations
+[PERM] AUTOIMMUNE | LOO 2/13 | starting 1000 permutations
+[PERM] I9_CHD | LOO 11/11 | starting 1000 permutations
+[PERM] AUTOIMMUNE | LOO 3/13 | starting 1000 permutations
+[PERM] I9_CHD | LOO 3/11 | starting 1000 permutations
+[PERM] I9_CHD | LOO 5/11 | starting 1000 permutations
+[PERM] AUTOIMMUNE | LOO 13/13 | starting 1000 permutations
+[PERM] I9_CHD | LOO 7/11 | starting 1000 permutations
+[PERM] AUTOIMMUNE | LOO 1/13 | 1/1000 done
+[PERM] I9_CHD | LOO 2/11 | starting 1000 permutations
+[PERM] I9_CHD | LOO 6/11 | starting 1000 permutations
+[PERM] AUTOIMMUNE | LOO 5/13 | 1/1000 done
+[PERM] AUTOIMMUNE | LOO 9/13 | 1/1000 done
+[PERM] AUTOIMMUNE | LOO 7/13 | 1/1000 done
+[PERM] AUTOIMMUNE | LOO 4/13 | 1/1000 done
+[PERM] AUTOIMMUNE | LOO 12/13 | 1/1000 done
+[PERM] AUTOIMMUNE | LOO 10/13 | 1/1000 done
+[PERM] I9_CHD | LOO 9/11 | starting 1000 permutations
+[PERM] I9_CHD | LOO 8/11 | 1/1000 done
+[PERM] I9_CHD | LOO 4/11 | 1/1000 done
+[PERM] K11_IBD_STRICT | LOO 8/16 | starting 1000 permutations
+[PERM] I9_CHD | LOO 10/11 | starting 1000 permutations
+[PERM] K11_IBD_STRICT | LOO 3/16 | starting 1000 permutations
+[PERM] K11_IBD_STRICT | LOO 10/16 | starting 1000 permutations
+[PERM] K11_IBD_STRICT | LOO 5/16 | starting 1000 permutations
+[PERM] K11_IBD_STRICT | LOO 11/16 | starting 1000 permutations
+[PERM] AUTOIMMUNE | LOO 11/13 | 1/1000 done
+[PERM] K11_IBD_STRICT | LOO 1/16 | 1/1000 done
+[PERM] K11_IBD_STRICT | LOO 7/16 | starting 1000 permutations
+[PERM] K11_IBD_STRICT | LOO 9/16 | starting 1000 permutations
+[PERM] K11_IBD_STRICT | LOO 13/16 | starting 1000 permutations
+[PERM] K11_IBD_STRICT | LOO 15/16 | starting 1000 permutations
+[PERM] K11_IBD_STRICT | LOO 2/16 | 1/1000 done
+[PERM] K11_IBD_STRICT | LOO 12/16 | starting 1000 permutations
+[PERM] K11_IBD_STRICT | LOO 4/16 | 1/1000 done
+[PERM] K11_IBD_STRICT | LOO 16/16 | starting 1000 permutations
+[PERM] K11_IBD_STRICT | LOO 14/16 | 1/1000 done
+[PERM] K11_IBD_STRICT | LOO 6/16 | 1/1000 done
+[PERM] AUTOIMMUNE | LOO 8/13 | 1/1000 done
+[PERM] AUTOIMMUNE | LOO 6/13 | 1/1000 done
+[PERM] I9_CHD | LOO 1/11 | 1/1000 done
+[PERM] AUTOIMMUNE | LOO 2/13 | 1/1000 done
+[PERM] I9_CHD | LOO 11/11 | 1/1000 done
+[PERM] K11_IBD_STRICT | LOO 10/16 | 1/1000 done
+[PERM] I9_CHD | LOO 3/11 | 1/1000 done
+[PERM] AUTOIMMUNE | LOO 3/13 | 1/1000 done
+[PERM] AUTOIMMUNE | LOO 13/13 | 1/1000 done
+[PERM] I9_CHD | LOO 7/11 | 1/1000 done
+[PERM] I9_CHD | LOO 5/11 | 1/1000 done
+[PERM] I9_CHD | LOO 6/11 | 1/1000 done
+[PERM] I9_CHD | LOO 2/11 | 1/1000 done
+[PERM] K11_IBD_STRICT | LOO 8/16 | 1/1000 done
+[PERM] I9_CHD | LOO 9/11 | 1/1000 done
+[PERM] K11_IBD_STRICT | LOO 11/16 | 1/1000 done
+[PERM] K11_IBD_STRICT | LOO 3/16 | 1/1000 done
+[PERM] I9_CHD | LOO 10/11 | 1/1000 done
+[PERM] K11_IBD_STRICT | LOO 7/16 | 1/1000 done
+[PERM] K11_IBD_STRICT | LOO 5/16 | 1/1000 done
+[PERM] K11_IBD_STRICT | LOO 9/16 | 1/1000 done
+[PERM] K11_IBD_STRICT | LOO 13/16 | 1/1000 done
+[PERM] K11_IBD_STRICT | LOO 15/16 | 1/1000 done
+[PERM] K11_IBD_STRICT | LOO 12/16 | 1/1000 done
+[PERM] K11_IBD_STRICT | LOO 16/16 | 1/1000 done
+[PERM] K11_IBD_STRICT | LOO 4/16 | 200/1000 done
+[PERM] K11_IBD_STRICT | LOO 2/16 | 200/1000 done
+[PERM] I9_CHD | LOO 4/11 | 200/1000 done
+[PERM] K11_IBD_STRICT | LOO 8/16 | 200/1000 done
+[PERM] K11_IBD_STRICT | LOO 6/16 | 200/1000 done
+[PERM] AUTOIMMUNE | LOO 1/13 | 200/1000 done
+[PERM] I9_CHD | LOO 8/11 | 200/1000 done
+[PERM] AUTOIMMUNE | LOO 8/13 | 200/1000 done
+[PERM] AUTOIMMUNE | LOO 12/13 | 200/1000 done
+[PERM] K11_IBD_STRICT | LOO 15/16 | 200/1000 done
+[PERM] AUTOIMMUNE | LOO 5/13 | 200/1000 done
+[PERM] AUTOIMMUNE | LOO 7/13 | 200/1000 done
+[PERM] K11_IBD_STRICT | LOO 14/16 | 200/1000 done
+[PERM] K11_IBD_STRICT | LOO 1/16 | 200/1000 done
+[PERM] AUTOIMMUNE | LOO 9/13 | 200/1000 done
+[PERM] K11_IBD_STRICT | LOO 10/16 | 200/1000 done
+[PERM] K11_IBD_STRICT | LOO 13/16 | 200/1000 done
+[PERM] K11_IBD_STRICT | LOO 3/16 | 200/1000 done
+[PERM] I9_CHD | LOO 1/11 | 200/1000 done
+[PERM] I9_CHD | LOO 3/11 | 200/1000 done
+[PERM] K11_IBD_STRICT | LOO 12/16 | 200/1000 done
+[PERM] K11_IBD_STRICT | LOO 16/16 | 200/1000 done
+[PERM] K11_IBD_STRICT | LOO 9/16 | 200/1000 done
+[PERM] AUTOIMMUNE | LOO 6/13 | 200/1000 done
+[PERM] I9_CHD | LOO 11/11 | 200/1000 done
+[PERM] AUTOIMMUNE | LOO 10/13 | 200/1000 done
+[PERM] K11_IBD_STRICT | LOO 11/16 | 200/1000 done
+[PERM] AUTOIMMUNE | LOO 2/13 | 200/1000 done
+[PERM] AUTOIMMUNE | LOO 11/13 | 200/1000 done
+[PERM] I9_CHD | LOO 5/11 | 200/1000 done
+[PERM] I9_CHD | LOO 2/11 | 200/1000 done
+[PERM] I9_CHD | LOO 10/11 | 200/1000 done
+[PERM] I9_CHD | LOO 9/11 | 200/1000 done
+[PERM] AUTOIMMUNE | LOO 4/13 | 200/1000 done
+[PERM] I9_CHD | LOO 6/11 | 200/1000 done
+[PERM] AUTOIMMUNE | LOO 13/13 | 200/1000 done
+[PERM] K11_IBD_STRICT | LOO 7/16 | 200/1000 done
+[PERM] AUTOIMMUNE | LOO 3/13 | 200/1000 done
+[PERM] I9_CHD | LOO 7/11 | 200/1000 done
+[PERM] K11_IBD_STRICT | LOO 5/16 | 200/1000 done
+[PERM] K11_IBD_STRICT | LOO 4/16 | 400/1000 done
+[PERM] K11_IBD_STRICT | LOO 2/16 | 400/1000 done
+[PERM] AUTOIMMUNE | LOO 7/13 | 400/1000 done
+[PERM] AUTOIMMUNE | LOO 1/13 | 400/1000 done
+[PERM] AUTOIMMUNE | LOO 5/13 | 400/1000 done
+[PERM] K11_IBD_STRICT | LOO 6/16 | 400/1000 done
+[PERM] AUTOIMMUNE | LOO 12/13 | 400/1000 done
+[PERM] I9_CHD | LOO 8/11 | 400/1000 done
+[PERM] K11_IBD_STRICT | LOO 8/16 | 400/1000 done
+[PERM] I9_CHD | LOO 4/11 | 400/1000 done
+[PERM] AUTOIMMUNE | LOO 8/13 | 400/1000 done
+[PERM] K11_IBD_STRICT | LOO 13/16 | 400/1000 done
+[PERM] K11_IBD_STRICT | LOO 14/16 | 400/1000 done
+[PERM] K11_IBD_STRICT | LOO 15/16 | 400/1000 done
+[PERM] AUTOIMMUNE | LOO 10/13 | 400/1000 done
+[PERM] I9_CHD | LOO 2/11 | 400/1000 done
+[PERM] AUTOIMMUNE | LOO 9/13 | 400/1000 done
+[PERM] I9_CHD | LOO 10/11 | 400/1000 done
+[PERM] K11_IBD_STRICT | LOO 1/16 | 400/1000 done
+[PERM] AUTOIMMUNE | LOO 2/13 | 400/1000 done
+[PERM] AUTOIMMUNE | LOO 11/13 | 400/1000 done
+[PERM] I9_CHD | LOO 3/11 | 400/1000 done
+[PERM] K11_IBD_STRICT | LOO 10/16 | 400/1000 done
+[PERM] K11_IBD_STRICT | LOO 12/16 | 400/1000 done
+[PERM] AUTOIMMUNE | LOO 4/13 | 400/1000 done
+[PERM] I9_CHD | LOO 1/11 | 400/1000 done
+[PERM] K11_IBD_STRICT | LOO 3/16 | 400/1000 done
+[PERM] K11_IBD_STRICT | LOO 5/16 | 400/1000 done
+[PERM] AUTOIMMUNE | LOO 6/13 | 400/1000 done
+[PERM] K11_IBD_STRICT | LOO 16/16 | 400/1000 done
+[PERM] I9_CHD | LOO 7/11 | 400/1000 done
+[PERM] K11_IBD_STRICT | LOO 9/16 | 400/1000 done
+[PERM] I9_CHD | LOO 11/11 | 400/1000 done
+[PERM] I9_CHD | LOO 6/11 | 400/1000 done
+[PERM] K11_IBD_STRICT | LOO 11/16 | 400/1000 done
+[PERM] I9_CHD | LOO 5/11 | 400/1000 done
+[PERM] I9_CHD | LOO 9/11 | 400/1000 done
+[PERM] AUTOIMMUNE | LOO 13/13 | 400/1000 done
+[PERM] K11_IBD_STRICT | LOO 7/16 | 400/1000 done
+[PERM] AUTOIMMUNE | LOO 3/13 | 400/1000 done
+[PERM] AUTOIMMUNE | LOO 7/13 | 600/1000 done
+[PERM] AUTOIMMUNE | LOO 1/13 | 600/1000 done
+[PERM] AUTOIMMUNE | LOO 5/13 | 600/1000 done
+[PERM] I9_CHD | LOO 8/11 | 600/1000 done
+[PERM] K11_IBD_STRICT | LOO 13/16 | 600/1000 done
+[PERM] K11_IBD_STRICT | LOO 4/16 | 600/1000 done
+[PERM] I9_CHD | LOO 10/11 | 600/1000 done
+[PERM] I9_CHD | LOO 2/11 | 600/1000 done
+[PERM] K11_IBD_STRICT | LOO 6/16 | 600/1000 done
+[PERM] AUTOIMMUNE | LOO 12/13 | 600/1000 done
+[PERM] K11_IBD_STRICT | LOO 2/16 | 600/1000 done
+[PERM] AUTOIMMUNE | LOO 11/13 | 600/1000 done
+[PERM] AUTOIMMUNE | LOO 2/13 | 600/1000 done
+[PERM] AUTOIMMUNE | LOO 10/13 | 600/1000 done
+[PERM] AUTOIMMUNE | LOO 8/13 | 600/1000 done
+[PERM] K11_IBD_STRICT | LOO 8/16 | 600/1000 done
+[PERM] K11_IBD_STRICT | LOO 14/16 | 600/1000 done
+[PERM] K11_IBD_STRICT | LOO 5/16 | 600/1000 done
+[PERM] I9_CHD | LOO 4/11 | 600/1000 done
+[PERM] AUTOIMMUNE | LOO 4/13 | 600/1000 done
+[PERM] AUTOIMMUNE | LOO 9/13 | 600/1000 done
+[PERM] K11_IBD_STRICT | LOO 15/16 | 600/1000 done
+[PERM] I9_CHD | LOO 7/11 | 600/1000 done
+[PERM] K11_IBD_STRICT | LOO 16/16 | 600/1000 done
+[PERM] K11_IBD_STRICT | LOO 10/16 | 600/1000 done
+[PERM] K11_IBD_STRICT | LOO 9/16 | 600/1000 done
+[PERM] K11_IBD_STRICT | LOO 1/16 | 600/1000 done
+[PERM] I9_CHD | LOO 9/11 | 600/1000 done
+[PERM] I9_CHD | LOO 3/11 | 600/1000 done
+[PERM] K11_IBD_STRICT | LOO 3/16 | 600/1000 done
+[PERM] I9_CHD | LOO 1/11 | 600/1000 done
+[PERM] K11_IBD_STRICT | LOO 11/16 | 600/1000 done
+[PERM] I9_CHD | LOO 6/11 | 600/1000 done
+[PERM] K11_IBD_STRICT | LOO 12/16 | 600/1000 done
+[PERM] AUTOIMMUNE | LOO 6/13 | 600/1000 done
+[PERM] K11_IBD_STRICT | LOO 7/16 | 600/1000 done
+[PERM] I9_CHD | LOO 11/11 | 600/1000 done
+[PERM] AUTOIMMUNE | LOO 13/13 | 600/1000 done
+[PERM] I9_CHD | LOO 5/11 | 600/1000 done
+[PERM] AUTOIMMUNE | LOO 3/13 | 600/1000 done
+[PERM] AUTOIMMUNE | LOO 7/13 | 800/1000 done
+[PERM] AUTOIMMUNE | LOO 1/13 | 800/1000 done
+[PERM] AUTOIMMUNE | LOO 5/13 | 800/1000 done
+[PERM] K11_IBD_STRICT | LOO 13/16 | 800/1000 done
+[PERM] I9_CHD | LOO 10/11 | 800/1000 done
+[PERM] I9_CHD | LOO 8/11 | 800/1000 done
+[PERM] K11_IBD_STRICT | LOO 4/16 | 800/1000 done
+[PERM] I9_CHD | LOO 2/11 | 800/1000 done
+[PERM] AUTOIMMUNE | LOO 12/13 | 800/1000 done
+[PERM] K11_IBD_STRICT | LOO 2/16 | 800/1000 done
+[PERM] K11_IBD_STRICT | LOO 6/16 | 800/1000 done
+[PERM] AUTOIMMUNE | LOO 10/13 | 800/1000 done
+[PERM] AUTOIMMUNE | LOO 11/13 | 800/1000 done
+[PERM] K11_IBD_STRICT | LOO 5/16 | 800/1000 done
+[PERM] K11_IBD_STRICT | LOO 8/16 | 800/1000 done
+[PERM] AUTOIMMUNE | LOO 2/13 | 800/1000 done
+[PERM] AUTOIMMUNE | LOO 8/13 | 800/1000 done
+[PERM] K11_IBD_STRICT | LOO 14/16 | 800/1000 done
+[PERM] AUTOIMMUNE | LOO 4/13 | 800/1000 done
+[PERM] I9_CHD | LOO 4/11 | 800/1000 done
+[PERM] I9_CHD | LOO 7/11 | 800/1000 done
+[PERM] AUTOIMMUNE | LOO 9/13 | 800/1000 done
+[PERM] K11_IBD_STRICT | LOO 15/16 | 800/1000 done
+[PERM] K11_IBD_STRICT | LOO 16/16 | 800/1000 done
+[PERM] K11_IBD_STRICT | LOO 10/16 | 800/1000 done
+[PERM] K11_IBD_STRICT | LOO 9/16 | 800/1000 done
+[PERM] K11_IBD_STRICT | LOO 1/16 | 800/1000 done
+[PERM] I9_CHD | LOO 9/11 | 800/1000 done
+[PERM] K11_IBD_STRICT | LOO 12/16 | 800/1000 done
+[PERM] K11_IBD_STRICT | LOO 3/16 | 800/1000 done
+[PERM] I9_CHD | LOO 3/11 | 800/1000 done
+[PERM] AUTOIMMUNE | LOO 6/13 | 800/1000 done
+[PERM] K11_IBD_STRICT | LOO 11/16 | 800/1000 done
+[PERM] I9_CHD | LOO 6/11 | 800/1000 done
+[PERM] I9_CHD | LOO 1/11 | 800/1000 done
+[PERM] K11_IBD_STRICT | LOO 7/16 | 800/1000 done
+[PERM] AUTOIMMUNE | LOO 13/13 | 800/1000 done
+[PERM] I9_CHD | LOO 11/11 | 800/1000 done
+[PERM] AUTOIMMUNE | LOO 3/13 | 800/1000 done
+[PERM] I9_CHD | LOO 5/11 | 800/1000 done
+[PERM] AUTOIMMUNE | LOO 7/13 | 1000/1000 done
+[DONE] AUTOIMMUNE | LOO 7/13 | emp_pval=0.6923 | recovered=FALSE
+[PERM] AUTOIMMUNE | LOO 1/13 | 1000/1000 done
+[DONE] AUTOIMMUNE | LOO 1/13 | emp_pval=0.8711 | recovered=FALSE
+[PERM] AUTOIMMUNE | LOO 5/13 | 1000/1000 done
+[DONE] AUTOIMMUNE | LOO 5/13 | emp_pval=0.3676 | recovered=FALSE
+[PERM] K11_IBD_STRICT | LOO 13/16 | 1000/1000 done
+[DONE] K11_IBD_STRICT | LOO 13/16 | emp_pval=0.8312 | recovered=FALSE
+[PERM] I9_CHD | LOO 10/11 | 1000/1000 done
+[DONE] I9_CHD | LOO 10/11 | emp_pval=0.06194 | recovered=FALSE
+[PERM] I9_CHD | LOO 2/11 | 1000/1000 done
+[DONE] I9_CHD | LOO 2/11 | emp_pval=0.1409 | recovered=FALSE
+[PERM] AUTOIMMUNE | LOO 10/13 | 1000/1000 done
+[DONE] AUTOIMMUNE | LOO 10/13 | emp_pval=0.3027 | recovered=FALSE
+[PERM] I9_CHD | LOO 8/11 | 1000/1000 done
+[DONE] I9_CHD | LOO 8/11 | emp_pval=0.3986 | recovered=FALSE
+[PERM] AUTOIMMUNE | LOO 11/13 | 1000/1000 done
+[DONE] AUTOIMMUNE | LOO 11/13 | emp_pval=0.02498 | recovered=TRUE
+[PERM] K11_IBD_STRICT | LOO 5/16 | 1000/1000 done
+[DONE] K11_IBD_STRICT | LOO 5/16 | emp_pval=0.7473 | recovered=FALSE
+[PERM] K11_IBD_STRICT | LOO 4/16 | 1000/1000 done
+[DONE] K11_IBD_STRICT | LOO 4/16 | emp_pval=0.005994 | recovered=TRUE
+[PERM] K11_IBD_STRICT | LOO 8/16 | 1000/1000 done
+[DONE] K11_IBD_STRICT | LOO 8/16 | emp_pval=0.01399 | recovered=TRUE
+[PERM] AUTOIMMUNE | LOO 2/13 | 1000/1000 done
+[DONE] AUTOIMMUNE | LOO 2/13 | emp_pval=0.6583 | recovered=FALSE
+[PERM] K11_IBD_STRICT | LOO 6/16 | 1000/1000 done
+[DONE] K11_IBD_STRICT | LOO 6/16 | emp_pval=0.6014 | recovered=FALSE
+[PERM] AUTOIMMUNE | LOO 12/13 | 1000/1000 done
+[DONE] AUTOIMMUNE | LOO 12/13 | emp_pval=0.9181 | recovered=FALSE
+[PERM] K11_IBD_STRICT | LOO 2/16 | 1000/1000 done
+[DONE] K11_IBD_STRICT | LOO 2/16 | emp_pval=0.03996 | recovered=TRUE
+[PERM] AUTOIMMUNE | LOO 8/13 | 1000/1000 done
+[DONE] AUTOIMMUNE | LOO 8/13 | emp_pval=0.03197 | recovered=TRUE
+[PERM] AUTOIMMUNE | LOO 4/13 | 1000/1000 done
+[DONE] AUTOIMMUNE | LOO 4/13 | emp_pval=0.1199 | recovered=FALSE
+[PERM] K11_IBD_STRICT | LOO 14/16 | 1000/1000 done
+[PERM] I9_CHD | LOO 7/11 | 1000/1000 done
+[DONE] K11_IBD_STRICT | LOO 14/16 | emp_pval=0.4565 | recovered=FALSE
+[DONE] I9_CHD | LOO 7/11 | emp_pval=0.6024 | recovered=FALSE
+[PERM] K11_IBD_STRICT | LOO 12/16 | 1000/1000 done
+[DONE] K11_IBD_STRICT | LOO 12/16 | emp_pval=0.1638 | recovered=FALSE
+[PERM] AUTOIMMUNE | LOO 9/13 | 1000/1000 done
+[DONE] AUTOIMMUNE | LOO 9/13 | emp_pval=0.6404 | recovered=FALSE
+[PERM] I9_CHD | LOO 4/11 | 1000/1000 done
+[DONE] I9_CHD | LOO 4/11 | emp_pval=0.02298 | recovered=TRUE
+[PERM] K11_IBD_STRICT | LOO 3/16 | 1000/1000 done
+[DONE] K11_IBD_STRICT | LOO 3/16 | emp_pval=0.000999 | recovered=TRUE
+[PERM] AUTOIMMUNE | LOO 6/13 | 1000/1000 done
+[DONE] AUTOIMMUNE | LOO 6/13 | emp_pval=0.08492 | recovered=FALSE
+[PERM] K11_IBD_STRICT | LOO 10/16 | 1000/1000 done
+[DONE] K11_IBD_STRICT | LOO 10/16 | emp_pval=0.2767 | recovered=FALSE
+[PERM] K11_IBD_STRICT | LOO 16/16 | 1000/1000 done
+[DONE] K11_IBD_STRICT | LOO 16/16 | emp_pval=0.07692 | recovered=FALSE
+[PERM] K11_IBD_STRICT | LOO 15/16 | 1000/1000 done
+[DONE] K11_IBD_STRICT | LOO 15/16 | emp_pval=0.1289 | recovered=FALSE
+[PERM] K11_IBD_STRICT | LOO 11/16 | 1000/1000 done
+[PERM] K11_IBD_STRICT | LOO 1/16 | 1000/1000 done
+[DONE] K11_IBD_STRICT | LOO 11/16 | emp_pval=0.06793 | recovered=FALSE
+[PERM] I9_CHD | LOO 6/11 | 1000/1000 done
+[DONE] K11_IBD_STRICT | LOO 1/16 | emp_pval=0.000999 | recovered=TRUE
+[DONE] I9_CHD | LOO 6/11 | emp_pval=0.07892 | recovered=FALSE
+[PERM] K11_IBD_STRICT | LOO 9/16 | 1000/1000 done
+[DONE] K11_IBD_STRICT | LOO 9/16 | emp_pval=0.002997 | recovered=TRUE
+[PERM] K11_IBD_STRICT | LOO 7/16 | 1000/1000 done
+[DONE] K11_IBD_STRICT | LOO 7/16 | emp_pval=0.00999 | recovered=TRUE
+[PERM] I9_CHD | LOO 9/11 | 1000/1000 done
+[DONE] I9_CHD | LOO 9/11 | emp_pval=0.4206 | recovered=FALSE
+[PERM] I9_CHD | LOO 3/11 | 1000/1000 done
+[PERM] I9_CHD | LOO 1/11 | 1000/1000 done
+[DONE] I9_CHD | LOO 3/11 | emp_pval=0.1219 | recovered=FALSE
+[DONE] I9_CHD | LOO 1/11 | emp_pval=0.4396 | recovered=FALSE
+[PERM] AUTOIMMUNE | LOO 13/13 | 1000/1000 done
+[DONE] AUTOIMMUNE | LOO 13/13 | emp_pval=0.5475 | recovered=FALSE
+[PERM] AUTOIMMUNE | LOO 3/13 | 1000/1000 done
+[DONE] AUTOIMMUNE | LOO 3/13 | emp_pval=0.01099 | recovered=TRUE
+[PERM] I9_CHD | LOO 11/11 | 1000/1000 done
+[DONE] I9_CHD | LOO 11/11 | emp_pval=0.04396 | recovered=TRUE
+[PERM] I9_CHD | LOO 5/11 | 1000/1000 done
+[DONE] I9_CHD | LOO 5/11 | emp_pval=0.3257 | recovered=FALSE
+완료. 소요시간: 1094초 (18.2분)
+
+============================================================ 
+총 3개 질환, 40개 LOO 케이스
+Recovery (emp_pval < 0.05): 12 / 40 (30.0%)
+
+질환별 recovery 요약:
+  AUTOIMMUNE                               3 / 13 recovered
+  I9_CHD                                   2 / 11 recovered
+  K11_IBD_STRICT                           7 / 16 recovered
+Error: unexpected symbol in "cat(sprintf("\n결과 저장: %s\n", OUTPUT_FILE))final"
+Execution halted
