@@ -28,7 +28,7 @@ library(parallel)
 DATA_DIR           <- "result_network_propagation"
 NETWORK_FILE       <- "tables_expansion/Combined_STRINGv11_OTAR281119_FILTER.rds"
 OUTPUT_FILE        <- "result_np_cutoff/np_cutoff_results.csv"
-N_PERM             <- 1000
+N_PERM             <- 10000
 LOW_SEED_THRESHOLD <- 2
 RANDOM_SEED        <- 42
 FDR_ALPHA          <- 0.05
@@ -36,6 +36,11 @@ FDR_ALPHA          <- 0.05
 # 코어 수: NULL이면 자동 감지 (전체의 75%), 숫자로 직접 지정 가능
 # 예: N_CORES <- 8
 N_CORES <- NULL
+
+# 총 코어를 질환 병렬 / permutation 병렬로 나누는 비율
+# 둘 다 동시에 돌리려면 한쪽만 최대치로 주지 말고 분할해야 함
+DISEASE_CORES <- NULL
+PERM_CORES    <- NULL
 
 # 전체 실행 시 TEST_SPECIFIC <- NULL 로 변경
 TEST_SPECIFIC <- c(
@@ -51,30 +56,60 @@ TEST_SPECIFIC <- c(
   # "nodes.finngen_R12_K11_IBD_STRICT.rds",
   # "nodes.finngen_R12_I9_HYPTENS.rds"
 
-  # seed >= 5개인 질환들
-  "nodes.finngen_R12_I9_HYPTENS.rds",                    # seed 25
-  "nodes.finngen_R12_K11_IBD_STRICT.rds",                # seed 16
-  "nodes.finngen_R12_AUTOIMMUNE.rds",                    # seed 13
-  "nodes.finngen_R12_I9_CHD.rds",                        # seed 11
-  "nodes.finngen_R12_T2D_WIDE.rds",                      # seed 9
-  "nodes.finngen_R12_C3_BASAL_CELL_CARCINOMA_EXALLC.rds",# seed 12
-  "nodes.finngen_R12_C3_PROSTATE_EXALLC.rds",            # seed 8
-  "nodes.finngen_R12_C3_SKIN_EXALLC.rds",                # seed 8
-  "nodes.finngen_R12_CARDIAC_ARRHYTM.rds",               # seed 9
-  "nodes.finngen_R12_T1D.rds",                           # seed 5
-  "nodes.finngen_R12_ASTHMMA_ACUTE_RESPIRATORY_INFECTIONS.rds", # seed 7
-  "nodes.finngen_R12_AD_EO_EXMORE.rds",                  # seed 5
-  "nodes.finngen_R12_ALLERG_ASTHMA.rds",                 # seed 6
-  "nodes.finngen_R12_ASTHMA_CHILD_EXMORE.rds"          # seed 5
+  # seed >= 5개인 질환들 (Old datasets 기준)
+  # "nodes.finngen_R12_I9_HYPTENS.rds",                    # seed 25
+  # "nodes.finngen_R12_K11_IBD_STRICT.rds",                # seed 16
+  # "nodes.finngen_R12_AUTOIMMUNE.rds",                    # seed 13
+  # "nodes.finngen_R12_I9_CHD.rds",                        # seed 11
+  # "nodes.finngen_R12_T2D_WIDE.rds",                      # seed 9
+  # "nodes.finngen_R12_C3_BASAL_CELL_CARCINOMA_EXALLC.rds",# seed 12
+  # "nodes.finngen_R12_C3_PROSTATE_EXALLC.rds",            # seed 8
+  # "nodes.finngen_R12_C3_SKIN_EXALLC.rds",                # seed 8
+  # "nodes.finngen_R12_CARDIAC_ARRHYTM.rds",               # seed 9
+  # "nodes.finngen_R12_T1D.rds",                           # seed 5
+  # "nodes.finngen_R12_ASTHMMA_ACUTE_RESPIRATORY_INFECTIONS.rds", # seed 7
+  # "nodes.finngen_R12_AD_EO_EXMORE.rds",                  # seed 5
+  # "nodes.finngen_R12_ALLERG_ASTHMA.rds",                 # seed 6
+  # "nodes.finngen_R12_ASTHMA_CHILD_EXMORE.rds"          # seed 5
+
+  # (6/1 New datasets 기준)
+    "nodes.finngen_R12_AUTOIMMUNE",
+    "nodes.finngen_R12_I9_CHD",
+    "nodes.finngen_R12_I9_HYPTENS",
+    "nodes.finngen_R12_K11_IBD_STRICT",
+    "nodes.finngen_R12_L12_ATOPIC",
+    "nodes.finngen_R12_T1D",
+    "nodes.finngen_R12_T2D_WIDE",
+    "nodes.finngen_R12_CARDIAC_ARRHYTM",
+    "nodes.finngen_R12_C3_PROSTATE_EXALLC",
+    "nodes.finngen_R12_C3_BASAL_CELL_CARCINOMA_EXALLC",
+    "nodes.finngen_R12_C3_SKIN_EXALLC",
+    "nodes.finngen_R12_ALLERG_ASTHMA",
+    "nodes.finngen_R12_ASTHMA_CHILD_EXMORE",
+    "nodes.finngen_R12_AD_EO_EXMORE"
 )
 # =============================================================================
+
+normalize_disease_id <- function(x) {
+  x <- basename(x)
+  x <- sub("^nodes\\.", "", x)
+  sub("\\.rds$", "", x)
+}
 
 # 코어 수 결정
 if (is.null(N_CORES)) {
   detected <- detectCores(logical = FALSE)   # 물리 코어
   N_CORES  <- max(1L, floor(detected * 0.75))
 }
-cat(sprintf("사용 코어 수: %d / %d\n", N_CORES, detectCores(logical = FALSE)))
+
+if (is.null(DISEASE_CORES) || is.null(PERM_CORES)) {
+  # 기본값은 대략 반반 분할: 바깥(질환)과 안쪽(permutation)을 둘 다 병렬화
+  DISEASE_CORES <- max(1L, floor(sqrt(N_CORES)))
+  PERM_CORES    <- max(1L, floor(N_CORES / DISEASE_CORES))
+}
+
+cat(sprintf("사용 코어 수: total=%d, diseases=%d, permutations=%d\n",
+            N_CORES, DISEASE_CORES, PERM_CORES))
 
 dir.create(dirname(OUTPUT_FILE), showWarnings = FALSE, recursive = TRUE)
 
@@ -152,17 +187,32 @@ process_disease <- function(filepath) {
     exclude_genes = seed_df$ENSG
   )
 
-  null_matrix <- matrix(NA_real_, nrow = length(target_nodes), ncol = N_PERM)
+  # Run permutations in 5 chunks and report progress so we can track permutation progress
+  chunk_size <- ceiling(N_PERM / 5)
+  perm_chunks <- split(seq_len(N_PERM), ceiling(seq_along(seq_len(N_PERM)) / chunk_size))
 
-  for (perm_idx in seq_len(N_PERM)) {
-    rand_seeds <- sampler()
-    pv    <- base_pv
-    valid <- rand_seeds %in% names(pv)
-    pv[rand_seeds[valid]] <- seed_df$padj[valid]
-    pr_vec <- page_rank(net_full,
-                         personalized = pv,
-                         weights      = E(net_full)$weight)$vector
-    null_matrix[, perm_idx] <- pr_vec[target_nodes]
+  null_matrix <- matrix(NA_real_, nrow = length(target_nodes), ncol = 0)
+  done <- 0
+  for (chunk in perm_chunks) {
+    chunk_res <- mclapply(
+      chunk,
+      function(perm_idx) {
+        rand_seeds <- sampler()
+        pv    <- base_pv
+        valid <- rand_seeds %in% names(pv)
+        pv[rand_seeds[valid]] <- seed_df$padj[valid]
+        pr_vec <- page_rank(net_full,
+                            personalized = pv,
+                            weights      = E(net_full)$weight)$vector
+        pr_vec[target_nodes]
+      },
+      mc.cores    = PERM_CORES,
+      mc.set.seed = TRUE
+    )
+
+    null_matrix <- cbind(null_matrix, do.call(cbind, chunk_res))
+    done <- done + length(chunk)
+    cat(sprintf("%s: %d/%d permutations done (%.0f%%)\n", trait, done, N_PERM, done / N_PERM * 100))
   }
 
   count_ge <- rowSums(null_matrix >= obs_scores, na.rm = TRUE)
@@ -179,13 +229,20 @@ process_disease <- function(filepath) {
 
 # == 병렬 실행 =================================================================
 files <- sort(list.files(DATA_DIR, pattern = "\\.rds$", full.names = TRUE))
-if (!is.null(TEST_SPECIFIC)) files <- files[basename(files) %in% TEST_SPECIFIC]
+if (!is.null(TEST_SPECIFIC)) {
+  files <- files[normalize_disease_id(files) %in% TEST_SPECIFIC]
+}
+
+if (length(files) == 0) {
+  stop("No disease files matched TEST_SPECIFIC. Check the disease IDs against result_network_propagation/ filenames.")
+}
+
 n_files <- length(files)
 
 cat(sprintf("Processing %d diseases across %d cores...\n", n_files, N_CORES))
 
 # 시작할 질환들 표시
-diseases <- gsub("nodes\\.finngen_R12_|\\.rds", "", basename(files))
+diseases <- normalize_disease_id(files)
 cat(sprintf("Diseases: %s\n\n", paste(diseases, collapse=", ")))
 
 t0 <- proc.time()["elapsed"]
@@ -215,7 +272,7 @@ set.seed(RANDOM_SEED)
 all_results <- mclapply(
   files,
   process_with_progress,
-  mc.cores    = N_CORES,
+  mc.cores    = DISEASE_CORES,
   mc.set.seed = TRUE
 )
 

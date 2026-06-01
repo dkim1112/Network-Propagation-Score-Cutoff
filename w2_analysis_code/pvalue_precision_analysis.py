@@ -21,8 +21,8 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 
 def main():
     # 데이터 로드
-    df_1k = pd.read_csv(TEST_DATA_DIR / "loo_results_4.csv")   # 1K permutations
-    df_10k = pd.read_csv(TEST_DATA_DIR / "loo_results_3.csv")  # 10K permutations
+    df_1k = pd.read_csv(TEST_DATA_DIR / "loo_results_1000.csv")   # 1K permutations
+    df_10k = pd.read_csv(TEST_DATA_DIR / "loo_results_10000.csv")  # 10K permutations
 
     # 공통 케이스 매칭
     df_1k['case_id'] = df_1k['Trait'] + '_' + df_1k['left_out_ENSG']
