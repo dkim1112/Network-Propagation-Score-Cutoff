@@ -43,51 +43,8 @@ DISEASE_CORES <- NULL
 PERM_CORES    <- NULL
 
 # 전체 실행 시 TEST_SPECIFIC <- NULL 로 변경
-TEST_SPECIFIC <- c(
-  # old datasets
-  # "nodes.finngen_R12_ALCOPANCCHRON.rds",
-  # "nodes.finngen_R12_ABDOM_HERNIA.rds",
-  # "nodes.finngen_R12_L12_ATOPIC.rds",
-  # "nodes.finngen_R12_T1D.rds",
-  # "nodes.finngen_R12_AUTOIMMUNE_NONTHYROID.rds",
-  # "nodes.finngen_R12_T2D_WIDE.rds",
-  # "nodes.finngen_R12_I9_CHD.rds",
-  # "nodes.finngen_R12_AUTOIMMUNE.rds",
-  # "nodes.finngen_R12_K11_IBD_STRICT.rds",
-  # "nodes.finngen_R12_I9_HYPTENS.rds"
-
-  # seed >= 5개인 질환들 (Old datasets 기준)
-  # "nodes.finngen_R12_I9_HYPTENS.rds",                    # seed 25
-  # "nodes.finngen_R12_K11_IBD_STRICT.rds",                # seed 16
-  # "nodes.finngen_R12_AUTOIMMUNE.rds",                    # seed 13
-  # "nodes.finngen_R12_I9_CHD.rds",                        # seed 11
-  # "nodes.finngen_R12_T2D_WIDE.rds",                      # seed 9
-  # "nodes.finngen_R12_C3_BASAL_CELL_CARCINOMA_EXALLC.rds",# seed 12
-  # "nodes.finngen_R12_C3_PROSTATE_EXALLC.rds",            # seed 8
-  # "nodes.finngen_R12_C3_SKIN_EXALLC.rds",                # seed 8
-  # "nodes.finngen_R12_CARDIAC_ARRHYTM.rds",               # seed 9
-  # "nodes.finngen_R12_T1D.rds",                           # seed 5
-  # "nodes.finngen_R12_ASTHMMA_ACUTE_RESPIRATORY_INFECTIONS.rds", # seed 7
-  # "nodes.finngen_R12_AD_EO_EXMORE.rds",                  # seed 5
-  # "nodes.finngen_R12_ALLERG_ASTHMA.rds",                 # seed 6
-  # "nodes.finngen_R12_ASTHMA_CHILD_EXMORE.rds"          # seed 5
-
-  # (6/1 New datasets 기준)
-    "nodes.finngen_R12_AUTOIMMUNE",
-    "nodes.finngen_R12_I9_CHD",
-    "nodes.finngen_R12_I9_HYPTENS",
-    "nodes.finngen_R12_K11_IBD_STRICT",
-    "nodes.finngen_R12_L12_ATOPIC",
-    "nodes.finngen_R12_T1D",
-    "nodes.finngen_R12_T2D_WIDE",
-    "nodes.finngen_R12_CARDIAC_ARRHYTM",
-    "nodes.finngen_R12_C3_PROSTATE_EXALLC",
-    "nodes.finngen_R12_C3_BASAL_CELL_CARCINOMA_EXALLC",
-    "nodes.finngen_R12_C3_SKIN_EXALLC",
-    "nodes.finngen_R12_ALLERG_ASTHMA",
-    "nodes.finngen_R12_ASTHMA_CHILD_EXMORE",
-    "nodes.finngen_R12_AD_EO_EXMORE"
-)
+# 전체 질환 실행
+TEST_SPECIFIC <- NULL
 # =============================================================================
 
 normalize_disease_id <- function(x) {
@@ -297,6 +254,4 @@ cat(sprintf("emp_pval < 0.05 유전자-질환 쌍: %s\n",
 cat(sprintf("Low confidence 질환 (seed<=%d개): %d개 질환\n",
             LOW_SEED_THRESHOLD,
             length(unique(final$Trait[final$low_confidence]))))
-if (length(skipped) > 0)
-  cat("Skipped:", paste(skipped, collapse = ", "), "\n")
 cat(sprintf("결과 저장: %s\n", OUTPUT_FILE))
